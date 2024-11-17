@@ -18,11 +18,8 @@ import numpy as np
 # 1. import data
 
 ds = fetch_openml(name='mushroom', version=1)
-# print(ds)
 X = ds.data
 y = ds.target
-# print(X)
-# print(y)
 
 # 2. data exploration and preprocessing
 # print(wine) 

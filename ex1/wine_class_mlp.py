@@ -29,6 +29,7 @@ enc = Pipeline(steps=[
     # ("encoder", preprocessing.OneHotEncoder()),
     ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
     ("scaler", preprocessing.StandardScaler()),
+    # ("clf", MLPClassifier(random_state=1)),
 ])
 X_preprocessed = enc.fit_transform(X)
 # scaler = preprocessing.StandardScaler().fit(X)
@@ -36,6 +37,18 @@ X_preprocessed = enc.fit_transform(X)
 X_scaled = X_preprocessed
 # scaler = preprocessing.StandardScaler().fit(X)
 # X_scaled = scaler.transform(X)
+
+parameter_grid = {
+    # "vect__max_df": (0.2, 0.4, 0.6, 0.8, 1.0),
+    # "vect__min_df": (1, 3, 5, 10),
+    # "vect__ngram_range": ((1, 1), (1, 2)),  # unigrams or bigrams
+    # "vect__norm": ("l1", "l2"),
+    "imputer__strategy": ('constant', 'mean', 'median', 'most_frequent'),
+    "clf__activation": ('identity', 'logistic', 'tanh', 'relu'),
+    "clf__solver": ('lbfgs', 'sgd', 'adam'),
+    # "clf__hidden_layer_sizes": (),
+    "clf__alpha": np.logspace(-6, 6, 13),
+}
 
 
 # 3. classification
