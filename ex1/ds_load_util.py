@@ -1,14 +1,19 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from sklearn.datasets import fetch_openml, load_wine
-from sklearn import preprocessing
+# from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
+# from sklearn.impute import SimpleImputer
 
 
 import numpy as np
 import pandas as pd
+
+def main():
+    load_dataset('reviews')
+
 
 def load_dataset(name,preprocess=False,
                  encoder=None,
@@ -20,11 +25,16 @@ def load_dataset(name,preprocess=False,
         wine = load_wine()
         X = wine.data
         y = wine.target
+    elif name == 'mushroom':
+        ds = fetch_openml(name='mushroom', version=1)
+        X = ds.data
+        X = X.where(X!='?', other=np.nan)
+        y = ds.target
     elif name == 'congress':
         ds = pd.read_csv('CongressionalVotingID.shuf.lrn.csv')
         print(ds.sample(3))
         X = ds.drop(['ID', 'class'], axis=1)
-        X = X.where(X=='unknown', other=np.nan)
+        X = X.where(X!='unknown', other=np.nan)
         y = ds['class']
     elif name == 'reviews':
         ds = pd.read_csv('amazon_review_ID.shuf.lrn.csv')
@@ -35,6 +45,10 @@ def load_dataset(name,preprocess=False,
         print(ds.sample(3))
         X = ds.drop(['ID', 'Class'], axis=1)
         y = ds['Class']
+        
+        # print(X)
+        # print(y)
+        # print(X.max(axis=0).min()) #=1, so there are no entirely empty colums
     else:
         print("unknown Dataset")
         return (0,0,0,0)
@@ -54,8 +68,13 @@ def load_dataset(name,preprocess=False,
     if scaler != None:
         pipeline_steps.append(('scaler', scaler))
         
-    enc = Pipeline(steps=pipeline_steps)
-    X_train = enc.fit_transform(X_train)
-    X_test = enc.transform(X_test)
+    if len(pipeline_steps) > 0:
+        enc = Pipeline(steps=pipeline_steps)
+        X_train = enc.fit_transform(X_train)
+        X_test = enc.transform(X_test)
     
     return (X_train, X_test, y_train, y_test)
+
+
+if __name__ == '__main__':
+    main()

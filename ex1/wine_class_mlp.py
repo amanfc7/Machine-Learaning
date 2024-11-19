@@ -26,17 +26,25 @@ def main():
 def train_model(do_gridsearch=False):
     # ----------------Wine-------------------------
     
+    scaler_no = 2
+    
+    
+    if scaler_no == 1:
+        scaler = preprocessing.StandardScaler()
+    elif scaler_no == 2:
+        scaler=preprocessing.MinMaxScaler()
+    elif scaler_no == 3:
+        scaler=preprocessing.RobustScaler()
+    else:
+        scaler = None
+    
     # 1. import data
     X_train, X_test, y_train, y_test  = load_dataset('wine', 
                                                      preprocess=True, 
-                                                      # scaler=preprocessing.StandardScaler(),
-                                                      # scaler=preprocessing.MinMaxScaler(),
-                                                      scaler=preprocessing.RobustScaler(),
-                                                     )
-
+                                                      scaler=scaler,
+                                                 )
         
     # 2. gridsearch
-    
     parameters = {
         "activation": ('identity', 'logistic', 'tanh', 'relu'),
         "solver": ('lbfgs', 'sgd', 'adam'),
@@ -79,21 +87,24 @@ def train_model(do_gridsearch=False):
         print(f"Accuracy on test set: {test_accuracy:.3f}")
     
     else:
-        # clf = MLPClassifier(solver='lbfgs', #better w/ StandardScaler
-        #                       alpha=1e1,
-        #                       activation='identity',
-        #                       hidden_layer_sizes=(15, 15), 
-        #                       random_state=1)
-        # clf = MLPClassifier(solver='lbfgs', #better w/MinMaxScaler
-        #                     alpha=1e-4,
-        #                     hidden_layer_sizes=(15, 2), 
-        #                     activation='logistic',
-        #                     random_state=1)
-        clf = MLPClassifier(solver='sgd', #better w/RobustScaler
-                            alpha=1e-8,
-                            hidden_layer_sizes=(100,), 
-                            activation='identity',
-                            random_state=1)
+        if scaler_no == 1:
+            clf = MLPClassifier(solver='lbfgs', #better w/ StandardScaler
+                                  alpha=1e1,
+                                  activation='identity',
+                                  hidden_layer_sizes=(15, 15), 
+                                  random_state=1)
+        if scaler_no == 2:
+            clf = MLPClassifier(solver='lbfgs', #better w/MinMaxScaler
+                                alpha=1e-4,
+                                hidden_layer_sizes=(15, 2), 
+                                activation='logistic',
+                                random_state=1)
+        if scaler_no == 3:
+            clf = MLPClassifier(solver='sgd', #better w/RobustScaler
+                                alpha=1e-8,
+                                hidden_layer_sizes=(100,), 
+                                activation='identity',
+                                random_state=1)
         
         clf.fit(X_train, y_train)
     
@@ -103,14 +114,14 @@ def train_model(do_gridsearch=False):
         # accuracy & precision, false positives, false negatives
         
         print(clf.score(X_test, y_test))
-        print("accurancy from holdout\n")
+        print("accuracy from holdout\n")
         
         #crossvalidation
-        # scores = cross_val_score(clf, X, y, cv=10)
-        # if not grid_search:
         scores = cross_val_score(clf, X_train, y_train, cv=10)
         print(scores)
         print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+        
+    print("Scaler number: %d" % scaler_no)
         
 
 if __name__ == '__main__':
