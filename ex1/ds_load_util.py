@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from ucimlrepo import fetch_ucirepo
 from sklearn.datasets import fetch_openml, load_wine
 # from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-# from sklearn.impute import SimpleImputer
 
 
 import numpy as np
 import pandas as pd
 
 def main():
-    load_dataset('reviews')
+    load_dataset('second', verbose=True)
 
 
 def load_dataset(name,preprocess=False,
                  encoder=None,
                  imputer=None,
-                 scaler=None
+                 scaler=None,
+                 verbose=False
                  ):
     
     if name == 'wine':
@@ -32,7 +33,8 @@ def load_dataset(name,preprocess=False,
         y = ds.target
     elif name == 'congress':
         ds = pd.read_csv('CongressionalVotingID.shuf.lrn.csv')
-        print(ds.sample(3))
+        if verbose:
+            print(ds.sample(3))
         X = ds.drop(['ID', 'class'], axis=1)
         X = X.where(X!='unknown', other=np.nan)
         y = ds['class']
@@ -40,15 +42,36 @@ def load_dataset(name,preprocess=False,
         ds = pd.read_csv('amazon_review_ID.shuf.lrn.csv')
         # print(ds)
         # ds_test = pd.read_csv('amazon_review_ID.shuf.tes.csv')
-        # ds = fetch_openml(name='mushroom', version=1)
         # print(ds)
-        print(ds.sample(3))
+        if verbose:
+            print(ds.sample(3))
         X = ds.drop(['ID', 'Class'], axis=1)
         y = ds['Class']
         
         # print(X)
         # print(y)
         # print(X.max(axis=0).min()) #=1, so there are no entirely empty colums
+    elif name =='adult':
+        ds = fetch_ucirepo(id=2)
+        X = ds.data.features
+        X = X.where(X!='NaN', other=np.nan)
+        y = np.ravel(ds.data.targets)
+        if verbose:
+            print(ds.metadata)
+            print(ds.variables)
+            # print(y)
+            # print(np.ravel(y).shape)
+    elif name == 'second':
+        ds = fetch_ucirepo(id=365)
+        X = ds.data.features
+        X = X.where(X!='NaN', other=np.nan)
+        y = ds.data.targets
+        y = np.ravel(y)
+        if verbose:
+            print(ds.metadata)
+            print(ds.variables)
+            # print(y)
+            # print(np.ravel(y).shape)
     else:
         print("unknown Dataset")
         return (0,0,0,0)

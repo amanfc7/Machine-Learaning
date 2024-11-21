@@ -137,6 +137,8 @@ def train_model(do_gridsearch=False):
         clf.fit(X_train, y_train)
         
         # accuracy & precision, false positives, false negatives
+        
+        scores = cross_val_score(clf, X_train, y_train, cv=10)
 
         print(clf.score(X_test, y_test))
         print("accurancy from holdout\n")
@@ -146,7 +148,6 @@ def train_model(do_gridsearch=False):
                             # hidden_layer_sizes=(15, 2), 
                             # random_state=1)
         # scores = cross_val_score(clf, X, y, cv=10)
-        scores = cross_val_score(clf, X_train, y_train, cv=10)
         print(scores)
         print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     

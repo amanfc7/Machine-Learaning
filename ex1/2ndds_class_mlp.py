@@ -10,7 +10,7 @@ from sklearn.impute import SimpleImputer
 # import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pprint import pprint
+# from pprint import pprint
 from ds_load_util import load_dataset
 
 import sys
@@ -23,9 +23,9 @@ def main():
     train_model(search)
 
 def train_model(do_search=False):
-    # ----------------Congress-------------------------
+    # ----------------2nd own data set-------------------------
     
-    scaler_no = 2
+    scaler_no = 1
     
     
     if scaler_no == 1:
@@ -34,34 +34,41 @@ def train_model(do_search=False):
         scaler=preprocessing.MinMaxScaler()
     elif scaler_no == 3:
         scaler=preprocessing.RobustScaler()
+    elif scaler_no == 4:
+        scaler = preprocessing.MaxAbsScaler()
     else:
         scaler = None
     
     # 1. import data
-    X_train, X_test, y_train, y_test  = load_dataset('reviews', 
-                                                      preprocess=True, 
-                                                     #  encoder=preprocessing.OrdinalEncoder(),
+    X_train, X_test, y_train, y_test  = load_dataset('second', 
+                                                       preprocess=True, 
+                                                       # encoder=preprocessing.OrdinalEncoder(),
                                                      # # encoder=preprocessing.OneHotEncoder(),
                                                      #  # imputer=SimpleImputer(strategy="constant", fill_value=-1),
-                                                     #  imputer=SimpleImputer(),
-                                                       scaler=scaler,
+                                                        imputer=SimpleImputer(),
+                                                        scaler=scaler,
                                                      # # scaler= preprocessing.StandardScaler(with_mean=False),
                                                      #  scaler= preprocessing.MaxAbsScaler(),
                                                      # # ("normalizer", preprocessing.Normalizer()),
                                                      )
     
-    # # 2. data exploration and preprocessing
+    # # # 2. data exploration and preprocessing
+    # categories_to_transform = ['workclass','education','marital-status',
+    #                            'occupation','relationship','race', 'sex', 
+    #                            'native-country']
+    # enc = preprocessing.OrdinalEncoder()
+    # X_train[categories_to_transform] = enc.fit_transform(X_train[categories_to_transform])
+    # X_test[categories_to_transform] = enc.transform(X_test[categories_to_transform])
     # enc = Pipeline(steps=[
-    #     ("encoder", preprocessing.OrdinalEncoder()),
+    #     # ("encoder", preprocessing.OrdinalEncoder()),
     #     # ("encoder", preprocessing.OneHotEncoder()),
     #     ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
-    #     ("scaler", preprocessing.StandardScaler()),
-    #     # ("scaler", preprocessing.RobustScaler()),
-    #     # ("scaler", preprocessing.MaxAbsScaler()),
-    #     # ("scaler", preprocessing.MinMaxScaler()),
+    #     ("scaler", scaler),
     #     # ("scaler", preprocessing.StandardScaler(with_mean=False)),
     #     # ("normalizer", preprocessing.Normalizer()),
     # ])
+    # X_train = enc.fit_transform(X_train)
+    # X_test = enc.transform(X_test)
     
     #NOTE: could have gridsearch over different encoders etc via lambda function or similar
     
@@ -160,70 +167,3 @@ def train_model(do_search=False):
 
 if __name__ == '__main__':
     main()
-
-
-
-
-# parameter_grid = {
-#     # "oh_encoder__drop": (None, "if_binary"),
-#     # "oh_encoder__handle_unknown": ("infrequent_if_exist"),
-#     # "imputer__strategy": ('constant', 'mean', 'median', 'most_frequent'),
-#     # "imputer__fill_value": (0, -1),
-#     "clf__activation": ('identity', 'logistic', 'tanh', 'relu'),
-#     "clf__solver": ('lbfgs', 'sgd', 'adam'),
-#     "clf__hidden_layer_sizes": ((15,2), (100,), (15,15), (20,3), (20, 20, 20)),
-#     "clf__alpha": np.logspace(-8, 3, 12),
-#     "clf__max_iter": (200, 300),
-# }
-
-# search = RandomizedSearchCV(
-#     estimator=pipeline,
-#     param_distributions=parameter_grid,
-#     n_iter=50,
-#     random_state=1,
-#     n_jobs=4,
-#     verbose=1,
-# )
-
-# print("Performing grid search...")
-# print("Hyperparameters to be evaluated:")
-# pprint(parameter_grid)
-
-# from time import time
-
-# t0 = time()
-# search.fit(X_train,y_train)
-# print(f"Done in {time() - t0:.3f}s")
-
-# print("Best parameters combination found:")
-# best_parameters = search.best_estimator_.get_params()
-# for param_name in sorted(parameter_grid.keys()):
-#     print(f"{param_name}: {best_parameters[param_name]}")
-    
-# clf = search.best_estimator_
-
-# test_accuracy = search.score(X_test, y_test)
-# print(
-#     "Accuracy of the best parameters using the inner CV of "
-#     # f"the random search: {random_search.best_score_:.3f}"
-#     f"the grid search: {search.best_score_:.3f}"
-# )
-# print(f"Accuracy on test set: {test_accuracy:.3f}")
-
-# # 3. classification
-# clf = MLPClassifier(
-#                     solver='adam',
-#                     # solver='sgd',
-#                     # alpha=1e-5,
-#                     # hidden_layer_sizes=(15, 2), 
-#                     random_state=1)
-
-# clf.fit(X_train, y_train)
-
-
-# # 4. performance evaluation
-
-
-
-# #some visulization?
-
