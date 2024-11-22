@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.impute import SimpleImputer
 
-# Function to load and preview data
+# to load and preview data:
+
 def load_and_preview_data(file_path, is_arff=False, file_type="train"):
     print(f"Loading {file_type} data from {file_path}")
 
@@ -28,7 +29,8 @@ def load_and_preview_data(file_path, is_arff=False, file_type="train"):
     print(df.isin(["?", "unknown", "None", np.nan]).sum())  
     return df
 
-# Function to handle missing values
+# to handle missing values:
+
 def handle_missing_values(df):
     print("\nHandling Missing Values...")
     # Replace "?", "unknown", and "None" with NaN
@@ -43,17 +45,19 @@ def handle_missing_values(df):
         print("No missing values detected. Skipping imputation.")
         return df
 
-    # Handle only columns with missing values
+    # to handle only columns with missing values
     columns_with_missing = missing_counts[missing_counts > 0].index
 
-    # Impute categorical data (most frequent)
+    # Impute categorical data (by most frequent):
+
     categorical_columns = df.select_dtypes(include=['object']).columns.intersection(columns_with_missing)
     if len(categorical_columns) > 0:
         print(f"Imputing missing values in categorical columns: {list(categorical_columns)}")
         imputer = SimpleImputer(strategy='most_frequent')
         df[categorical_columns] = imputer.fit_transform(df[categorical_columns])
 
-    # Impute numerical data (median)
+    # Impute numerical data (using median):
+
     numerical_columns = df.select_dtypes(include=[np.number]).columns.intersection(columns_with_missing)
     if len(numerical_columns) > 0:
         print(f"Imputing missing values in numerical columns: {list(numerical_columns)}")
@@ -64,7 +68,8 @@ def handle_missing_values(df):
     print(df.isnull().sum())
     return df
 
-# Function for encoding categorical variables
+# for encoding categorical variables:
+
 def encode_categorical(df):
     label_encoder = LabelEncoder()
     for column in df.columns:
@@ -72,59 +77,69 @@ def encode_categorical(df):
             df[column] = label_encoder.fit_transform(df[column])
     return df
 
-# Function for scaling numerical columns
+# for scaling numerical columns:
+
 def scale_numerical(df):
     scaler = MinMaxScaler()
     numerical_columns = df.select_dtypes(include=[np.number]).columns
     df[numerical_columns] = scaler.fit_transform(df[numerical_columns])
     return df
 
-# Preprocessing function for training datasets
+# Preprocessing for training datasets:
+
 def preprocess_data(df, dataset_name):
     print(f"\nPreprocessing Dataset: {dataset_name}")
 
-    # Identify the target column based on the dataset
+    # to identify the target column based on the dataset:
+
     if dataset_name == "AmazonReview":
         target_column = df.columns[-1]  # Last column (Class)
     elif dataset_name == "Wine":
         target_column = df.columns[0]  # First column
     elif dataset_name == "Tracks":
-        target_column = "other_class"  # Column named 'other_class'
+        target_column = "other_class"  
     elif dataset_name == "CongressionalVotingID":
-        target_column = "class"  # Column named 'class'
+        target_column = "class" 
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
-    # Separate target and features
+    # to separate target and features:
+
     target = df[target_column].copy()
     features = df.drop(columns=[target_column])
 
-    # Handle missing values
+    # Handle missing values:
+
     if features.isnull().sum().sum() > 0 or features.isin(["?", "unknown", "None"]).sum().sum() > 0:
         features = handle_missing_values(features)
     else:
         print("No missing values detected. Skipping missing value handling.")
 
-    # Encode categorical columns
+    # Encode categorical columns:
+
     features = encode_categorical(features)
 
-    # Scale numerical columns (only for certain datasets like 'Wine')
+    # Scale numerical columns:
+
     if dataset_name == "Wine":
         features = scale_numerical(features)
 
-    # Combine features and target into a single dataframe
+    # Combine features and target into a single dataframe:
+
     df = features.copy()
     df[target_column] = target
     return df
 
-# Minimal preprocessing for test datasets
+# a bit preprocessing for test datasets:
+
 def preprocess_test_data(df):
     print("\nMinimal Preprocessing for Test Data")
     # Only handle missing values
     df = handle_missing_values(df)
     return df
 
-# Function to plot comparison before and after preprocessing
+# Function to plot comparison before and after preprocessing:
+
 def plot_comparison(before, after, dataset_name):
     fig, axs = plt.subplots(1, 2, figsize=(14, 6))
     axs[0].set_title(f'{dataset_name} - Before Preprocessing')
@@ -150,7 +165,8 @@ def plot_comparison(before, after, dataset_name):
     plt.tight_layout()
     plt.show()
 
-# Define file paths for datasets
+# Define file paths for datasets:
+
 datasets = {
     "CongressionalVotingID_train": r"C:\Users\amanf\Downloads\ML_Ex_1\CongressionalVotingID.shuf.lrn.csv",
     "CongressionalVotingID_test": r"C:\Users\amanf\Downloads\ML_Ex_1\CongressionalVotingID.shuf.tes.csv",
@@ -160,29 +176,34 @@ datasets = {
     "Tracks": r"C:\Users\amanf\Downloads\ML_Ex_1\tracks.csv",
 }
 
-# Load datasets
+# Load datasets:
+
 congressional_train = load_and_preview_data(datasets["CongressionalVotingID_train"], file_type="train")
 wine_data = load_and_preview_data(datasets["Wine"], file_type="full")
 amazon_train = load_and_preview_data(datasets["AmazonReview_train"], file_type="train")
 tracks_data = load_and_preview_data(datasets["Tracks"], file_type="full")
 
-# Preprocess train datasets
+# Preprocess train datasets:
+
 congressional_train_after = preprocess_data(congressional_train.copy(), "CongressionalVotingID")
 wine_data_after = preprocess_data(wine_data.copy(), "Wine")
 amazon_train_after = preprocess_data(amazon_train.copy(), "AmazonReview")
 tracks_data_after = preprocess_data(tracks_data.copy(), "Tracks")
 
-# Preprocess test datasets
+# Preprocess test datasets:
+
 congressional_test_after = preprocess_test_data(load_and_preview_data(datasets["CongressionalVotingID_test"], file_type="test"))
 amazon_test_after = preprocess_test_data(load_and_preview_data(datasets["AmazonReview_test"], file_type="test"))
 
-# Generate plots for train datasets
+# to generate plots for train datasets:
+
 plot_comparison(congressional_train, congressional_train_after, "Congressional Voting Train")
 plot_comparison(wine_data, wine_data_after, "Wine")
 plot_comparison(amazon_train, amazon_train_after, "Amazon Review Train")
 plot_comparison(tracks_data, tracks_data_after, "Tracks")
 
-# Save the preprocessed data to CSV files for later use
+# For saving the preprocessed data to csv files:
+
 congressional_train_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\congressional_train_after.csv", index=False)
 wine_data_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\ wine_data_after.csv", index=False)
 amazon_train_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\amazon_train_after.csv", index=False)
