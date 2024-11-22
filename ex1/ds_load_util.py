@@ -10,9 +10,10 @@ from sklearn.pipeline import Pipeline
 
 import numpy as np
 import pandas as pd
+import sys
 
 def main():
-    load_dataset('second', verbose=True)
+    load_dataset(sys.argv[1], verbose=True)
 
 
 def load_dataset(name,preprocess=False,
@@ -71,6 +72,35 @@ def load_dataset(name,preprocess=False,
             print(ds.metadata)
             print(ds.variables)
             # print(y)
+            # print(np.ravel(y).shape)
+    elif name == 'second2':
+        ds = fetch_openml(name='sick', version=1)
+        X = ds.data.drop(['TBG', 'TBG_measured'], axis=1) #can be dropped since the latter is monovalued ('f') and the former only contais missing values
+        # X = X.where(X!='?', other=np.nan)
+        y = ds.target
+        # X = ds.data.features
+        # X = X.where(X!='NaN', other=np.nan)
+        # y = ds.data.targets
+        # y = np.ravel(y)
+        if verbose:
+            # print(ds)
+            print(ds.data.columns)
+            # print(ds.metadata)
+            # print(ds.variables)
+            # print(y)
+            # print(np.ravel(y).shape)
+    elif name == 'second3':
+        ds = fetch_ucirepo(id=536)
+        X = ds.data.features
+        X = X.where(X!='NaN', other=np.nan)
+        y = ds.data.targets
+        # y = np.ravel(y)
+        if verbose:
+            print(ds)
+            print(ds.data)
+            # print(ds.metadata)
+            # print(ds.variables)
+            print(y)
             # print(np.ravel(y).shape)
     else:
         print("unknown Dataset")

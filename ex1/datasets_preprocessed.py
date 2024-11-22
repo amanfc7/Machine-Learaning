@@ -169,10 +169,14 @@ def plot_comparison(before, after, dataset_name):
 
 datasets = {
     "CongressionalVotingID_train": r"C:\Users\amanf\Downloads\ML_Ex_1\CongressionalVotingID.shuf.lrn.csv",
+    # "CongressionalVotingID_train": r"CongressionalVotingID.shuf.lrn.csv",
     "CongressionalVotingID_test": r"C:\Users\amanf\Downloads\ML_Ex_1\CongressionalVotingID.shuf.tes.csv",
+    # "CongressionalVotingID_test": r"CongressionalVotingID.shuf.tes.csv",
     "Wine": r"C:\Users\amanf\Downloads\ML_Ex_1\wine.data",
     "AmazonReview_train": r"C:\Users\amanf\Downloads\ML_Ex_1\amazon_review_ID.shuf.lrn.csv",
+    # "AmazonReview_train": r"amazon_review_ID.shuf.lrn.csv",
     "AmazonReview_test": r"C:\Users\amanf\Downloads\ML_Ex_1\amazon_review_ID.shuf.tes.csv",
+    # "AmazonReview_test": r"amazon_review_ID.shuf.tes.csv",
     "Tracks": r"C:\Users\amanf\Downloads\ML_Ex_1\tracks.csv",
 }
 

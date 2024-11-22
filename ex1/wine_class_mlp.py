@@ -4,7 +4,7 @@
 
 from sklearn import preprocessing
 from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
@@ -23,10 +23,8 @@ def main():
             search = True
     train_model(search)
 
-def train_model(do_gridsearch=False):
+def train_model(do_gridsearch=False, scaler_no=2):
     # ----------------Wine-------------------------
-    
-    scaler_no = 2
     
     
     if scaler_no == 1:

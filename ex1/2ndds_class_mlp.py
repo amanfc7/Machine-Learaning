@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from sklearn import preprocessing
 from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
@@ -22,11 +22,10 @@ def main():
             search = True
     train_model(search)
 
-def train_model(do_search=False):
+def train_model(do_search=False, scaler_no=1):
     # ----------------2nd own data set-------------------------
     
-    scaler_no = 1
-    
+
     
     if scaler_no == 1:
         scaler = preprocessing.StandardScaler()
@@ -40,35 +39,42 @@ def train_model(do_search=False):
         scaler = None
     
     # 1. import data
-    X_train, X_test, y_train, y_test  = load_dataset('second', 
-                                                       preprocess=True, 
-                                                       # encoder=preprocessing.OrdinalEncoder(),
+    X_train, X_test, y_train, y_test  = load_dataset('second2', 
+                                                       # preprocess=True, 
+                                                        # encoder=preprocessing.OrdinalEncoder(),
                                                      # # encoder=preprocessing.OneHotEncoder(),
                                                      #  # imputer=SimpleImputer(strategy="constant", fill_value=-1),
-                                                        imputer=SimpleImputer(),
-                                                        scaler=scaler,
+                                                        # imputer=SimpleImputer(),
+                                                        # scaler=scaler,
                                                      # # scaler= preprocessing.StandardScaler(with_mean=False),
                                                      #  scaler= preprocessing.MaxAbsScaler(),
                                                      # # ("normalizer", preprocessing.Normalizer()),
                                                      )
     
-    # # # 2. data exploration and preprocessing
+    # # 2. data exploration and preprocessing
     # categories_to_transform = ['workclass','education','marital-status',
-    #                            'occupation','relationship','race', 'sex', 
-    #                            'native-country']
-    # enc = preprocessing.OrdinalEncoder()
-    # X_train[categories_to_transform] = enc.fit_transform(X_train[categories_to_transform])
-    # X_test[categories_to_transform] = enc.transform(X_test[categories_to_transform])
-    # enc = Pipeline(steps=[
-    #     # ("encoder", preprocessing.OrdinalEncoder()),
-    #     # ("encoder", preprocessing.OneHotEncoder()),
-    #     ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
-    #     ("scaler", scaler),
-    #     # ("scaler", preprocessing.StandardScaler(with_mean=False)),
-    #     # ("normalizer", preprocessing.Normalizer()),
-    # ])
-    # X_train = enc.fit_transform(X_train)
-    # X_test = enc.transform(X_test)
+    #                             'occupation','relationship','race', 'sex', 
+    #                             'native-country']
+    categories_to_transform = ['sex', 'on_thyroxine', 'query_on_thyroxine',
+                                  'on_antithyroid_medication','sick','pregnant',
+                                  'thyroid_surgery','I131_treatment','query_hypothyroid',
+                                  'query_hyperthyroid','lithium','goitre',
+                                  'tumor','hypopituitary','psych','TSH_measured',
+                                  'T3_measured','TT4_measured','T4U_measured',
+                                  'FTI_measured','referral_source']
+    enc = preprocessing.OrdinalEncoder()
+    X_train[categories_to_transform] = enc.fit_transform(X_train[categories_to_transform])
+    X_test[categories_to_transform] = enc.transform(X_test[categories_to_transform])
+    enc = Pipeline(steps=[
+        # ("encoder", preprocessing.OrdinalEncoder()),
+        # ("encoder", preprocessing.OneHotEncoder()),
+        ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
+        ("scaler", scaler),
+        # ("scaler", preprocessing.StandardScaler(with_mean=False)),
+        # ("normalizer", preprocessing.Normalizer()),
+    ])
+    X_train = enc.fit_transform(X_train)
+    X_test = enc.transform(X_test)
     
     #NOTE: could have gridsearch over different encoders etc via lambda function or similar
     
@@ -121,14 +127,14 @@ def train_model(do_search=False):
     else:
         if scaler_no == 1: #StandardScaler
             clf = MLPClassifier(solver='adam',
-                                alpha=1e-1,
-                                hidden_layer_sizes=(100,), 
-                                activation='tanh',
+                                alpha=1e-4,
+                                hidden_layer_sizes=(15,2), 
+                                activation='relu',
                                 random_state=1)
         elif scaler_no == 2:# MinMaxScaler
-            clf = MLPClassifier(solver='adam',
-                                  alpha=1e-1,
-                                  activation='tanh',
+            clf = MLPClassifier(solver='lbfgs',
+                                  alpha=1e1,
+                                  activation='relu',
                                   hidden_layer_sizes=(100,), 
                                   random_state=1)
         elif scaler_no == 3:#RobustScaler
@@ -150,7 +156,6 @@ def train_model(do_search=False):
         clf.fit(X_train, y_train)
         
         # accuracy & precision, false positives, false negatives
-        
         scores = cross_val_score(clf, X_train, y_train, cv=10)
 
         print(clf.score(X_test, y_test))

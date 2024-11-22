@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 from sklearn import preprocessing
 from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 
 import numpy as np
 
-from pprint import pprint
+# from pprint import pprint
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -26,18 +26,22 @@ def main():
             search = True
     train_model(search)
 
-def train_model(do_gridsearch=False):
+def train_model(do_gridsearch=False, scaler_no=3):
     # ----------------Congress-------------------------
     
-    scaler_no = 3
+   
     
     
     if scaler_no == 1:
         scaler = preprocessing.StandardScaler()
+    if scaler_no == 11:
+        scaler = preprocessing.StandardScaler(with_mean=False)
     elif scaler_no == 2:
         scaler=preprocessing.MinMaxScaler()
     elif scaler_no == 3:
         scaler=preprocessing.RobustScaler()
+    elif scaler_no == 4:
+        scaler=preprocessing.MaxAbsScaler()
     else:
         scaler = None
     
@@ -48,8 +52,6 @@ def train_model(do_gridsearch=False):
                                                      # encoder=preprocessing.OneHotEncoder(),
                                                       # imputer=SimpleImputer(strategy="constant", fill_value=-1),
                                                       imputer=SimpleImputer(),
-                                                     # scaler= preprocessing.StandardScaler(with_mean=False),
-                                                      # scaler= preprocessing.MaxAbsScaler(),
                                                       scaler=scaler,
                                                      # ("normalizer", preprocessing.Normalizer()),
                                                      )
