@@ -17,10 +17,11 @@ import sys
 
 def main():
     search = False
+    scaler_no=1
     for arg in sys.argv:
         if arg == '-s':
             search = True
-    train_model(search)
+    train_model(search,scaler_no)
 
 def train_model(do_search=False, scaler_no=1):
     # ----------------2nd own data set-------------------------
