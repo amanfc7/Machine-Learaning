@@ -11,7 +11,7 @@ from ds_load_util import load_dataset  # Ensure this utility is correctly implem
 
 
 def main():
-    search = False
+    search = True
     for arg in sys.argv:
         if arg == '-s':
             search = True
@@ -36,29 +36,26 @@ def train_model(do_search=False, scaler_no=2):
         scaler=scaler,
     )
 
-    # 2. Define kernel for GPC
-    kernel = C(1.0, (1e-3, 1e3)) * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2))
-
+    # 2. grid search
+        
     if do_search:
-        # 3. Hyperparameter tuning with GridSearchCV
         parameters = {
-            "kernel": [
-                C(1.0, (1e-2, 1e2)) * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)),
-                C(0.5, (1e-3, 1e2)) * RBF(length_scale=0.5, length_scale_bounds=(1e-3, 1e1)),
-                C(1.0, (1e-2, 1e2)) * Matern(length_scale=1.5, length_scale_bounds=(1e-2, 1e2)),
-                C(1.0, (1e-3, 1e2)) * Matern(length_scale=0.5, length_scale_bounds=(1e-3, 1e1)),
-                C(1.0, (1e-2, 1e2)) * DotProduct(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)),
-                C(1.0, (1e-3, 1e2)) * DotProduct(length_scale=0.5, length_scale_bounds=(1e-3, 1e1)),
-                C(1.0, (1e-2, 1e2)) * RationalQuadratic(length_scale=0.5, length_scale_bounds=(1e-3, 1e1))
-            ],
-            "optimizer": [None, "fmin_l_bfgs_b"],
-            "max_iter_predict": [100, 300],
-            "n_restarts_optimizer": [0, 2],
-        }
+        "kernel": [
+            C(1.0, (1e-2, 1e2)) * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)),
+            C(1.0, (1e-2, 1e2)) * RBF(length_scale=0.5, length_scale_bounds=(1e-2, 1e2)),
+            C(1.0, (1e-2, 1e2)) * Matern(length_scale=1.5, length_scale_bounds=(1e-2, 1e2)),
+            C(1.0, (1e-2, 1e2)) * Matern(length_scale=0.5, length_scale_bounds=(1e-2, 1e2)),
+            C(1.0, (1e-2, 1e2)) * DotProduct(),
+            C(1.0, (1e-2, 1e2)) * RationalQuadratic(length_scale=0.5, length_scale_bounds=(1e-2, 1e2))
+        ],
+        "optimizer": [None, "fmin_l_bfgs_b"],
+        "max_iter_predict": [100, 300],
+        "n_restarts_optimizer": [0, 2],
+    }
 
         search = GridSearchCV(
-            estimator=GaussianProcessClassifier(kernel=kernel, random_state=1),
-            param_grid=parameters,
+            GaussianProcessClassifier(random_state=1),
+            parameters,
             cv=5,
             n_jobs=4,
             verbose=1,
@@ -87,7 +84,7 @@ def train_model(do_search=False, scaler_no=2):
 
     else:
         # 4. Train and evaluate a GPC with default kernel
-        clf = GaussianProcessClassifier(kernel=kernel, random_state=1)
+        clf = GaussianProcessClassifier(random_state=1)
         clf.fit(X_train, y_train)
 
         # Accuracy from holdout test set
@@ -99,7 +96,7 @@ def train_model(do_search=False, scaler_no=2):
         print(scores)
         print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
-    print(f"Scaler number: {scaler_no}, Kernel: {kernel}")
+    print(f"Scaler number: {scaler_no}")
 
 
 if __name__ == '__main__':
