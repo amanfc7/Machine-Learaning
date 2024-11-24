@@ -98,7 +98,7 @@ def train_model(do_search=False, scaler_no=2):
 
     print(f"Scaler number: {scaler_no}")
 
-    return clf
+    return (clf, X_test, y_test)
 
 
 if __name__ == '__main__':

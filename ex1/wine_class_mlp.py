@@ -35,7 +35,7 @@ def main():
         * scaler_no: 1 for preprocessing.StandardScaler(), 2 for preprocessing.MinMaxScaler(), 3 for preprocessing.RobustScaler(), else no scaler. Default=2
 """
 # ----------------Wine-------------------------
-def train_model(do_gridsearch=False, scaler_no=2):
+def train_model(do_gridsearch=False, scaler_no=2, skip_eval=False):
     
     # 1. import data
     X_train, X_test, y_train, y_test  = load_dataset('wine', 
@@ -111,18 +111,19 @@ def train_model(do_gridsearch=False, scaler_no=2):
     
         # 4. performance evaluation
         # accuracy & precision, false positives, false negatives
-        scores = cross_val_score(clf, X_train, y_train, cv=10)
-        
-        print(clf.score(X_test, y_test))
-        print("accuracy from holdout\n")
-        
-        #crossvalidation
-        print(scores)
-        print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+        if not skip_eval:
+            scores = cross_val_score(clf, X_train, y_train, cv=10)
+            
+            print(clf.score(X_test, y_test))
+            print("accuracy from holdout\n")
+            
+            #crossvalidation
+            print(scores)
+            print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
         
     print("Scaler number: %d" % scaler_no)
 
-    return clf
+    return (clf, X_test, y_test)
         
 
 if __name__ == '__main__':

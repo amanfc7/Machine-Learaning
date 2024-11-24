@@ -88,7 +88,7 @@ def train_model_sparse_gpc(n_inducing=100, scaler_no=2):
     scores = cross_val_score(clf, X_inducing, y_inducing, cv=5)
     print(f"CV accuracy with inducing points: {scores.mean():.3f} ± {scores.std():.3f}")
 
-    return clf
+    return (clf, X_test, y_test)
 
 
 if __name__ == "__main__":

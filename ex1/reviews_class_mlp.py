@@ -31,7 +31,7 @@ def main():
     Parameters:
         * scaler_no: 1 for preprocessing.StandardScaler(), 2 for preprocessing.MinMaxScaler(), 3 for preprocessing.RobustScaler(), else no scaler. Default=2
 """
-def train_model(do_search=False, scaler_no=2):
+def train_model(do_search=False, scaler_no=2, skip_eval=False):
     # ----------------Reviews-------------------------
     
     # 1. import data
@@ -134,19 +134,19 @@ def train_model(do_search=False, scaler_no=2):
         clf.fit(X_train, y_train)
         
         # accuracy & precision, false positives, false negatives
-        
-        scores = cross_val_score(clf, X_train, y_train, cv=10)
-        print(clf.score(X_test, y_test))
-        print("accurancy from holdout\n")
-        #crossvalidation
-        print(scores)
-        print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+        if not skip_eval:
+            scores = cross_val_score(clf, X_train, y_train, cv=10)
+            print(clf.score(X_test, y_test))
+            print("accurancy from holdout\n")
+            #crossvalidation
+            print(scores)
+            print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     
     #some visulization?
     
     print("Scaler number: %d" % scaler_no)
 
-    return clf
+    return (clf, X_test, y_test)
 
 if __name__ == '__main__':
     main()

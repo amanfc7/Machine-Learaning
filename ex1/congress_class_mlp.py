@@ -28,7 +28,7 @@ def main():
 
 
 # ----------------Congress-------------------------
-def train_model(do_gridsearch=False, scaler_no=3):
+def train_model(do_gridsearch=False, scaler_no=3, skip_eval=False):
     #TODO
     if scaler_no == 1:
         scaler = preprocessing.StandardScaler()
@@ -132,24 +132,24 @@ def train_model(do_gridsearch=False, scaler_no=3):
         clf.fit(X_train, y_train)
         
         # accuracy & precision, false positives, false negatives
-        
-        scores = cross_val_score(clf, X_train, y_train, cv=10)
-
-        print(clf.score(X_test, y_test))
-        print("accurancy from holdout\n")
-
-        #crossvalidation
-        # clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
-                            # hidden_layer_sizes=(15, 2), 
-                            # random_state=1)
-        # scores = cross_val_score(clf, X, y, cv=10)
-        print(scores)
-        print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+        if not skip_eval:
+            scores = cross_val_score(clf, X_train, y_train, cv=10)
+    
+            print(clf.score(X_test, y_test))
+            print("accurancy from holdout\n")
+    
+            #crossvalidation
+            # clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
+                                # hidden_layer_sizes=(15, 2), 
+                                # random_state=1)
+            # scores = cross_val_score(clf, X, y, cv=10)
+            print(scores)
+            print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     
     #some visulization?
     print("Scaler number: %d" % scaler_no)
 
-    return clf
+    return (clf, X_test, y_test)
 
 
 if __name__ == '__main__':
