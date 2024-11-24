@@ -120,6 +120,8 @@ def train_model(do_gridsearch=False, scaler_no=2):
         print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
         
     print("Scaler number: %d" % scaler_no)
+
+    return clf
         
 
 if __name__ == '__main__':

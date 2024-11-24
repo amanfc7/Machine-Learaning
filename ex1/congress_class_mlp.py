@@ -156,6 +156,8 @@ def train_model(do_gridsearch=False, scaler_no=3):
     #some visulization?
     print("Scaler number: %d" % scaler_no)
 
+    return clf
+
 
 if __name__ == '__main__':
     main()
