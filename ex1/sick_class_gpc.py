@@ -163,6 +163,8 @@ def train_model(do_search=False, scaler_no=1):
     #some visulization?
     
     print("Scaler number: %d" % scaler_no)
+    
+    return (clf, X_test, y_test)
 
 
 if __name__ == '__main__':

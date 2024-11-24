@@ -15,7 +15,7 @@ def main():
     for arg in sys.argv:
         if arg == '-s':
             search = True
-    train_model_sparse_gpc(search)
+    train_model(search)
 
 
 def select_inducing_points(X, y, n_inducing):
@@ -39,7 +39,10 @@ def select_inducing_points(X, y, n_inducing):
         # Use the full dataset if n_inducing >= len(X)
         return X, y
 
-
+def train_model(do_search=False):
+    # Example: Use 500 inducing points
+    return train_model_sparse_gpc(n_inducing=300, scaler_no=4)
+    
 def train_model_sparse_gpc(n_inducing=100, scaler_no=2):
     # Select scaler
     if scaler_no == 1:
@@ -92,5 +95,4 @@ def train_model_sparse_gpc(n_inducing=100, scaler_no=2):
 
 
 if __name__ == "__main__":
-    # Example: Use 500 inducing points
-    train_model_sparse_gpc(n_inducing=300, scaler_no=4)
+    main()

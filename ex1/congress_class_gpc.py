@@ -126,7 +126,7 @@ def train_model(do_gridsearch=False, scaler_no=2):
         print("accurancy from holdout\n")
 
         #crossvalidation
-        clf = GaussianProcessClassifier()
+        # clf = GaussianProcessClassifier()
         # scores = cross_val_score(clf, X, y, cv=10)
         print(scores)
         print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))

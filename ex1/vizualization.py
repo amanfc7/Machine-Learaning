@@ -9,8 +9,10 @@ from sklearn.impute import SimpleImputer
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pprint import pprint
-from ds_load_util import load_dataset
+# from pprint import pprint
+# import sys
+
+# from ds_load_util import load_dataset
 
 import wine_class_mlp
 import second_ds_class_mlp
@@ -18,12 +20,12 @@ import congress_class_mlp
 import reviews_class_mlp
 
 import wine_class_gpc
-# import second_ds_class_mlp ' or however it ends up ebing called
-import reviews_class_gpc
+import sick_class_gpc
+# import reviews_class_gpc
 import reviews_class_sparse_gpc
 import congress_class_gpc
 
-import sys
+
 
 
 def main():
@@ -51,8 +53,8 @@ def main():
     
     #TODO: add other clfs 
     best_sick_clfs = [second_ds_class_mlp.train_model(skip_eval=True), 
-                      second_ds_class_mlp.train_model(skip_eval=True), 
-                      second_ds_class_mlp.train_model(skip_eval=True)]
+                      second_ds_class_mlp.train_model(skip_eval=True), #TODO: add decision tree clf
+                      sick_class_gpc.train_model()]
     plot_evaluation_values('Sick - Unfinished', best_sick_clfs)
     
 
