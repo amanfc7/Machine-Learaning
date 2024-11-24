@@ -29,19 +29,13 @@ def main():
             scaler_no = int(sys.argv[i+1])
     train_model(search,scaler_no)
 
-def train_model(do_search=False, scaler_no=1):
     # ----------------2nd own data set-------------------------
-    
-    if scaler_no == 1:
-        scaler = preprocessing.StandardScaler()
-    elif scaler_no == 2:
-        scaler=preprocessing.MinMaxScaler()
-    elif scaler_no == 3:
-        scaler=preprocessing.RobustScaler()
-    elif scaler_no == 4:
-        scaler = preprocessing.MaxAbsScaler()
-    else:
-        scaler = None
+"""
+    Parameters:
+        * scaler_no: 1 for preprocessing.StandardScaler(), 2 for preprocessing.MinMaxScaler(), 3 for preprocessing.RobustScaler(), 4 for preprocessing.MaxAbsScaler(), else no scaler. Default=1
+"""
+def train_model(do_search=False, scaler_no=1):
+
     
     # 1. import data
     X_train, X_test, y_train, y_test  = load_dataset('second2', 
@@ -50,9 +44,8 @@ def train_model(do_search=False, scaler_no=1):
                                                      # # encoder=preprocessing.OneHotEncoder(),
                                                       imputer=SimpleImputer(strategy="constant", fill_value=-1),
                                                         # imputer=SimpleImputer(),
-                                                        scaler=scaler,
+                                                        scaler_no=scaler_no,
                                                      # # scaler= preprocessing.StandardScaler(with_mean=False),
-                                                     #  scaler= preprocessing.MaxAbsScaler(),
                                                      # # ("normalizer", preprocessing.Normalizer()),
                                                      )
     

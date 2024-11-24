@@ -29,25 +29,18 @@ def main():
         if arg == '--scaler':
             scaler_no = int(sys.argv[i+1])
     train_model(search,scaler_no)
-    
+
+"""
+    Parameters:
+        * scaler_no: 1 for preprocessing.StandardScaler(), 2 for preprocessing.MinMaxScaler(), 3 for preprocessing.RobustScaler(), else no scaler. Default=2
+"""
 # ----------------Wine-------------------------
 def train_model(do_gridsearch=False, scaler_no=2):
-
-    
-    
-    if scaler_no == 1:
-        scaler = preprocessing.StandardScaler()
-    elif scaler_no == 2:
-        scaler=preprocessing.MinMaxScaler()
-    elif scaler_no == 3:
-        scaler=preprocessing.RobustScaler()
-    else:
-        scaler = None
     
     # 1. import data
     X_train, X_test, y_train, y_test  = load_dataset('wine', 
                                                      preprocess=True, 
-                                                      scaler=scaler,
+                                                      scaler_no=scaler_no,
                                                  )
         
     # 2. gridsearch

@@ -26,9 +26,10 @@ def main():
             search = True
     train_model(search)
 
+
 # ----------------Congress-------------------------
 def train_model(do_gridsearch=False, scaler_no=3):
-    
+    #TODO
     if scaler_no == 1:
         scaler = preprocessing.StandardScaler()
     if scaler_no == 11:

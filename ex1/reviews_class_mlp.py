@@ -27,19 +27,12 @@ def main():
             scaler_no = int(sys.argv[i+1])
     train_model(search, scaler_no)
 
+"""
+    Parameters:
+        * scaler_no: 1 for preprocessing.StandardScaler(), 2 for preprocessing.MinMaxScaler(), 3 for preprocessing.RobustScaler(), else no scaler. Default=2
+"""
 def train_model(do_search=False, scaler_no=2):
-    # ----------------Congress-------------------------
-    
-    
-    
-    if scaler_no == 1:
-        scaler = preprocessing.StandardScaler()
-    elif scaler_no == 2:
-        scaler=preprocessing.MinMaxScaler()
-    elif scaler_no == 3:
-        scaler=preprocessing.RobustScaler()
-    else:
-        scaler = None
+    # ----------------Reviews-------------------------
     
     # 1. import data
     X_train, X_test, y_train, y_test  = load_dataset('reviews', 
@@ -48,7 +41,7 @@ def train_model(do_search=False, scaler_no=2):
                                                      # # encoder=preprocessing.OneHotEncoder(),
                                                      #  # imputer=SimpleImputer(strategy="constant", fill_value=-1),
                                                      #  imputer=SimpleImputer(),
-                                                       scaler=scaler,
+                                                       scaler_no=scaler_no,
                                                      # # scaler= preprocessing.StandardScaler(with_mean=False),
                                                      #  scaler= preprocessing.MaxAbsScaler(),
                                                      # # ("normalizer", preprocessing.Normalizer()),
