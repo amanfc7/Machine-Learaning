@@ -1,87 +1,106 @@
+from sklearn import preprocessing
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF, Matern, DotProduct, RationalQuadratic, ConstantKernel as C
+from sklearn.model_selection import cross_val_score, GridSearchCV, train_test_split
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from ucimlrepo import fetch_ucirepo
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, LabelEncoder
-from sklearn.gaussian_process import GaussianProcessClassifier as gpc
-from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, DotProduct
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.model_selection import GridSearchCV, train_test_split
+import sys
+from ds_load_util import load_dataset  # Ensure this utility is correctly implemented
 
-# Load the dataset
-wine = fetch_ucirepo(id=109)
 
-# Define features and targets
-X = wine.data.features
-y = wine.data.targets
+def main():
+    search = False
+    for arg in sys.argv:
+        if arg == '-s':
+            search = True
+    train_model(search)
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
 
-# Define scalers and kernels
-scalers = [
-    StandardScaler(),
-    MinMaxScaler(),
-    RobustScaler(),
-]
+def train_model(do_search=False, scaler_no=2):
+    # Select scaler
+    if scaler_no == 1:
+        scaler = preprocessing.StandardScaler()
+    elif scaler_no == 2:
+        scaler = preprocessing.MinMaxScaler()
+    elif scaler_no == 3:
+        scaler = preprocessing.RobustScaler()
+    else:
+        scaler = None
 
-kernels = [
-    1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-3, 1e10)),
-    1.0 * Matern(length_scale=1.0, nu=1.5),
-    1.0 * RationalQuadratic(length_scale=1.0, alpha=1.0, alpha_bounds=(1e-3, 1e10)),
-    1.0 * DotProduct(sigma_0=1.0)
-]
+    # 1. Load dataset
+    X_train, X_test, y_train, y_test = load_dataset(
+        'wine',
+        preprocess=True,
+        scaler=scaler,
+    )
 
-# Create the pipeline and param_grid
-pipeline = Pipeline([
-    #('imputer', SimpleImputer()),  # Adding imputer to handle missing values
-    ('scaler', StandardScaler()),  # The scaler to normalize data
-    ('gpc', gpc(max_iter_predict=1000000))  # The GaussianProcessClassifier
-])
+    # 2. Define kernel for GPC
+    kernel = C(1.0, (1e-3, 1e3)) * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2))
 
-# Param grid to search over
-param_grid = {
-    #'imputer__strategy': ['mean', 'median', -1],  # Test different imputation strategies
-    'scaler': scalers,  # Test different scalers
-    'gpc__kernel': kernels  # Test different kernels
-}
+    if do_search:
+        # 3. Hyperparameter tuning with GridSearchCV
+        parameters = {
+            "kernel": [
+                C(1.0, (1e-2, 1e2)) * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)),
+                C(0.5, (1e-3, 1e2)) * RBF(length_scale=0.5, length_scale_bounds=(1e-3, 1e1)),
+                C(1.0, (1e-2, 1e2)) * Matern(length_scale=1.5, length_scale_bounds=(1e-2, 1e2)),
+                C(1.0, (1e-3, 1e2)) * Matern(length_scale=0.5, length_scale_bounds=(1e-3, 1e1)),
+                C(1.0, (1e-2, 1e2)) * DotProduct(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)),
+                C(1.0, (1e-3, 1e2)) * DotProduct(length_scale=0.5, length_scale_bounds=(1e-3, 1e1)),
+                C(1.0, (1e-2, 1e2)) * RationalQuadratic(length_scale=0.5, length_scale_bounds=(1e-3, 1e1))
+            ],
+            "optimizer": [None, "fmin_l_bfgs_b"],
+            "max_iter_predict": [100, 300],
+            "n_restarts_optimizer": [0, 2],
+        }
 
-# Set up GridSearchCV
-grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', verbose=2, n_jobs=-1)
+        search = GridSearchCV(
+            estimator=GaussianProcessClassifier(kernel=kernel, random_state=1),
+            param_grid=parameters,
+            cv=5,
+            n_jobs=4,
+            verbose=1,
+        )
 
-# Perform the search
-grid_search.fit(X_train, y_train)  # Make sure y_train is 1D
+        print("Performing grid search...")
+        from time import time
 
-# Get the best model from grid search
-best_model = grid_search.best_estimator_
+        t0 = time()
+        search.fit(X_train, y_train)
+        print(f"Done in {time() - t0:.3f}s")
 
-# Print the best parameters
-print("\nBest Parameters from GridSearchCV:")
-print(grid_search.best_params_)
+        print("Best parameters combination found:")
+        best_parameters = search.best_estimator_.get_params()
+        for param_name in sorted(parameters.keys()):
+            print(f"{param_name}: {best_parameters[param_name]}")
 
-# Extracting the mean and standard deviation of the cross-validation scores
-cv_results = grid_search.cv_results_
-mean_scores = cv_results['mean_test_score']  # Mean test scores from CV
-std_scores = cv_results['std_test_score']    # Standard deviation of test scores
+        clf = search.best_estimator_
 
-# Print the mean and standard deviation of the cross-validation scores
-print("\nMean of Cross-Validation Scores for Each Parameter Combination:")
-print(mean_scores)
+        test_accuracy = search.score(X_test, y_test)
+        print(
+            "Accuracy of the best parameters using the inner CV of "
+            f"the grid search: {search.best_score_:.3f}"
+        )
+        print(f"Accuracy on test set: {test_accuracy:.3f}")
 
-print("\nStandard Deviation of Cross-Validation Scores for Each Parameter Combination:")
-print(std_scores)
+    else:
+        # 4. Train and evaluate a GPC with default kernel
+        clf = GaussianProcessClassifier(kernel=kernel, random_state=1)
+        clf.fit(X_train, y_train)
 
-# Optionally, print the overall mean and std of all the CV results
-print("\nOverall Mean CV Score:", mean_scores.mean())
-print("Overall Standard Deviation of CV Scores:", std_scores.mean())
+        # Accuracy from holdout test set
+        print("Test Accuracy:", clf.score(X_test, y_test))
 
-# Calculate and print the accuracy on training and test data
-train_accuracy = accuracy_score(y_train, best_model.predict(X_train))  # Ensure y_train is 1D
-test_accuracy = accuracy_score(y_test, best_model.predict(X_test))    # Ensure y_test is 1D
+        # Cross-validation
+        scores = cross_val_score(clf, X_train, y_train, cv=10)
+        print("CV scores:")
+        print(scores)
+        print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
-print(f"\nTraining Accuracy: {train_accuracy:.4f}")
-print(f"Test Accuracy: {test_accuracy:.4f}")
+    print(f"Scaler number: {scaler_no}, Kernel: {kernel}")
 
+
+if __name__ == '__main__':
+    main()
