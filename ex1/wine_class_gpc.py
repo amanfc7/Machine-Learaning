@@ -11,7 +11,7 @@ from ds_load_util import load_dataset  # Ensure this utility is correctly implem
 
 
 def main():
-    search = True
+    search = False
     for arg in sys.argv:
         if arg == '-s':
             search = True
@@ -97,6 +97,8 @@ def train_model(do_search=False, scaler_no=2):
         print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
 
     print(f"Scaler number: {scaler_no}")
+
+    return clf
 
 
 if __name__ == '__main__':

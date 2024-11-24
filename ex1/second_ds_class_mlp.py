@@ -15,9 +15,13 @@ from ds_load_util import load_dataset
 
 import sys
 
+"""
+    Call with flag '-s' to do a gridsearch (default = no search)
+    Call with flag '--scaler' followed by a number to set the scaler used (default = StandardScaler)
+"""
 def main():
     search = False
-    scaler_no=1
+    scaler_no = 1
     for i, arg in enumerate(sys.argv):
         if arg == '-s':
             search = True

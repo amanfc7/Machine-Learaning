@@ -17,25 +17,34 @@ import second_ds_class_mlp
 import congress_class_mlp
 import reviews_class_mlp
 
+import wine_class_gpc
+# import second_ds_class_mlp ' or however it ends up ebing called
+import reviews_class_gpc
+import reviews_class_sparse_gpc
+import congress_class_gpc
+
 import sys
 
 
 def main():
+
+
+    pass
     
-    best_wine_class_mlp_clf = wine_class_mlp.train_model()
-    best_second_class_mlp_clf = second_ds_class_mlp.train_model()
-    best_congress_class_mlp_clf = congress_class_mlp.train_model()
-    best_reviews_class_mlp_clf = reviews_class_mlp.train_model()
+    # best_wine_class_mlp_clf = wine_class_mlp.train_model()
+    # best_second_class_mlp_clf = second_ds_class_mlp.train_model()
+    # best_congress_class_mlp_clf = congress_class_mlp.train_model()
+    # best_reviews_class_mlp_clf = reviews_class_mlp.train_model()
 
-    best_wine_class_dt_clf = None
-    best_second_class_dt_clf = None
-    best_congress_class_dt_clf = None
-    best_reviews_class_dt_clf = None
+    # best_wine_class_dt_clf = None
+    # best_second_class_dt_clf = None
+    # best_congress_class_dt_clf = None
+    # best_reviews_class_dt_clf = None
 
-    best_wine_class_gpc_clf = None
-    best_second_class_gpc_clf = None
-    best_congress_class_gpc_clf = None
-    best_reviews_class_gpc_clf = None
+    # best_wine_class_gpc_clf = None
+    # best_second_class_gpc_clf = None
+    # best_congress_class_gpc_clf = None
+    # best_reviews_class_gpc_clf = None
 
 
 

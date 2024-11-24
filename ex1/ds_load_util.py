@@ -16,20 +16,51 @@ def main():
     load_dataset(sys.argv[1], verbose=True)
 
 
-def load_dataset(name,preprocess=False,
+"""
+    loads a data set by name and returns a train test split of data and target
+
+    Parameters:
+        * name: the name of the dataset to load
+        * preprocess: boolean, should preprocessing be done, default=False
+        * verbose: should some datails about the dataset get printed, default=False
+        * encoder: an encoder object from sklearn, only used if preprocess=True, default=None
+        * imputer: an imputer object from sklearn, only used if preprocess=True, default=None
+        * scaler: a scaler object from sklearn. Only used if preprocess=True, default=None
+        * scaler_no: a number, specifying a scaler to be used. If this is set, the scaler passed in scaler is not used. Only used if preprocess=True, default=None
+"""
+def load_dataset(name,
+                 preprocess=False,
                  encoder=None,
                  imputer=None,
                  scaler=None,
+                 scaler_no=None,
                  verbose=False
                  ):
     
     categories_to_transform = []
+
+    if scaler_no != None:
+        if scaler_no == 1:
+            scaler = preprocessing.StandardScaler()
+        elif scaler_no == 11:
+            scaler = preprocessing.StandardScaler(with_mean=False)
+        elif scaler_no == 2:
+            scaler=preprocessing.MinMaxScaler()
+        elif scaler_no == 3:
+            scaler=preprocessing.RobustScaler()
+        elif scaler_no == 4:
+            scaler=preprocessing.MaxAbsScaler()
+        else:
+            print("Warning: Incalid scaler number. Using no scaler")
+            scaler = None
+    else:
+        scaler = scaler
     
     if name == 'wine':
         wine = load_wine()
         X = wine.data
         y = wine.target
-    elif name == 'mushroom':
+    elif name == 'mushroom': #unused data set
         ds = fetch_openml(name='mushroom', version=1)
         X = ds.data
         X = X.where(X!='?', other=np.nan)
@@ -51,7 +82,7 @@ def load_dataset(name,preprocess=False,
         
         # print(X)
         # print(y)
-    elif name =='adult':
+    elif name =='adult': #unused data set
         ds = fetch_ucirepo(id=2)
         X = ds.data.features
         X = X.where(X!='NaN', other=np.nan)
@@ -61,7 +92,7 @@ def load_dataset(name,preprocess=False,
             print(ds.variables)
             # print(y)
             # print(np.ravel(y).shape)
-    elif name == 'second':
+    elif name == 'second': #unused data set
         ds = fetch_ucirepo(id=365)
         X = ds.data.features
         X = X.where(X!='NaN', other=np.nan)
@@ -75,23 +106,18 @@ def load_dataset(name,preprocess=False,
     elif name == 'second2':
         ds = fetch_openml(name='sick', version=1)
         X = ds.data.drop(['TBG', 'TBG_measured'], axis=1) #can be dropped since the latter is monovalued ('f') and the former only contais missing values
-        # X = X.where(X!='?', other=np.nan)
         y = ds.target
-        # X = ds.data.features
         X = X.where(X!='NaN', other=np.nan) # dunno if this is needed
-        # y = ds.data.targets
-        # y = np.ravel(y)
+
         if verbose:
-            print(ds)
             print(ds.data)
-            print(X)
             print(ds.data.columns)
             # print(ds.metadata)
             # print(ds.variables)
             # print(y)
             # print(np.ravel(y).shape)
-        
-        # if preprocess:
+
+        # in this data set, only some colums should get encoded
         categories_to_transform = ['sex', 'on_thyroxine', 'query_on_thyroxine',
                                     'on_antithyroid_medication','sick','pregnant',
                                     'thyroid_surgery','I131_treatment','query_hypothyroid',
@@ -100,7 +126,7 @@ def load_dataset(name,preprocess=False,
                                     'T3_measured','TT4_measured','T4U_measured',
                                     'FTI_measured','referral_source']
             
-    elif name == 'second3':
+    elif name == 'second3': #unused data set
         ds = fetch_ucirepo(id=536)
         X = ds.data.features
         X = X.where(X!='NaN', other=np.nan)

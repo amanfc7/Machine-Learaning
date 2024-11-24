@@ -16,15 +16,23 @@ from ds_load_util import load_dataset
 
 import sys
 
+"""
+    Call with flag '-s' to do a gridsearch (default = no search)
+    Call with flag '--scaler' followed by a number to set the scaler used (default = MinMaxScaler)
+"""
 def main():
     search = False
-    for arg in sys.argv:
+    scaler_no = 2
+    for i, arg in enumerate(sys.argv):
         if arg == '-s':
             search = True
-    train_model(search)
-
+        if arg == '--scaler':
+            scaler_no = int(sys.argv[i+1])
+    train_model(search,scaler_no)
+    
+# ----------------Wine-------------------------
 def train_model(do_gridsearch=False, scaler_no=2):
-    # ----------------Wine-------------------------
+
     
     
     if scaler_no == 1:

@@ -26,11 +26,8 @@ def main():
             search = True
     train_model(search)
 
+# ----------------Congress-------------------------
 def train_model(do_gridsearch=False, scaler_no=3):
-    # ----------------Congress-------------------------
-    
-   
-    
     
     if scaler_no == 1:
         scaler = preprocessing.StandardScaler()
@@ -124,11 +121,6 @@ def train_model(do_gridsearch=False, scaler_no=3):
                             hidden_layer_sizes=(15, 2), 
                             activation='logistic',
                             random_state=1)
-        # clf = MLPClassifier(solver='sgd', #better w/?? TODO
-        #                     alpha=1e-8,
-        #                     hidden_layer_sizes=(100,), 
-        #                     activation='identity',
-        #                     random_state=1)
         elif scaler_no == 3: #better w/RobustScaler
             clf = MLPClassifier(solver='lbfgs', 
                             alpha=1e-0,
