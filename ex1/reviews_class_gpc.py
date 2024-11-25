@@ -55,7 +55,7 @@ class GPClassifier:
         self.likelihood = gpytorch.likelihoods.BernoulliLikelihood()
 
         # Define optimizer and marginal log likelihood (mll)
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.1)
         mll = gpytorch.mlls.VariationalELBO(self.likelihood, self.model, num_data=y_train_tensor.size(0))
 
         # Train the model
@@ -172,12 +172,12 @@ def simple_train_test(n_iter, number_samples, scaler_no, kernel_type):
 def main():
     # Set hyperparameter grid
     n_iter_values = [50, 100]  # Different number of iterations (epochs)
-    number_samples_values = [100, 200]  # Different number of inducing points
-    scaler_values = [1, 2, 3, 4]  # Different scalers
-    kernel_types = ['RBF', 'Matern', 'Linear']  # Different kernel types
+    number_samples_values = [10000]  # Different number of inducing points
+    scaler_values = [4]  # Different scalers
+    kernel_types = ['RBF', 'Matern']  # Different kernel types
     
     # Flag to control cross-validation
-    use_cross_validation = False  # Set to False to skip cross-validation
+    use_cross_validation = True  # Set to False to skip cross-validation
 
     best_accuracy = 0
     best_params = {}
