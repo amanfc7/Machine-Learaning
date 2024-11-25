@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from sklearn import preprocessing
-from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
+from sklearn.metrics import precision_score, recall_score
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -70,8 +65,19 @@ def main():
     plot_evaluation_values('Reviews - Unfinished', best_reviews_clfs)
     
 def plot_evaluation_values(data_set_name, clfs):
-    round_scores_to = 2
+    round_scores_to = 3
+    # average = 'weighted'
+    # average = 'micro'
+    average = 'macro' #here we see the most difference between the values
     accuracy_scores = [clf.score(X_test, y_test) for (clf, X_test, y_test) in clfs]
+    try:
+        precision_scores = [precision_score(y_test, clf.predict(X_test)) for (clf, X_test, y_test) in clfs]
+    except ValueError:
+        precision_scores = [precision_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs] #maybe need other average?
+    try:
+        recall_scores = [recall_score(y_test, clf.predict(X_test)) for (clf, X_test, y_test) in clfs]
+    except ValueError:
+        recall_scores = [recall_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs]
     # print(accuracy_scores)
     
     fig, axs = plt.subplots(2, 2)
@@ -79,19 +85,20 @@ def plot_evaluation_values(data_set_name, clfs):
     # bar_labels = ['MLP', 'DT', 'GPC']
     bar_colors = ['r', 'g', 'b']
     
+    #accuracy
     axs[0,0].bar(clfs, accuracy_scores, color=bar_colors)
     addlabels(axs[0,0], clfs, [round(score, round_scores_to) for score in accuracy_scores])
     axs[0,0].set_title("Accuracy for %s" % data_set_name)
     
-    #TODO placeholder, add other scores
-    axs[0,1].bar(clfs, accuracy_scores, color=bar_colors)
-    addlabels(axs[0,1], clfs, [round(score, round_scores_to) for score in accuracy_scores])
-    axs[0,1].set_title("TODO for %s" % data_set_name)
+    #precision
+    axs[0,1].bar(clfs, precision_scores, color=bar_colors)
+    addlabels(axs[0,1], clfs, [round(score, round_scores_to) for score in precision_scores])
+    axs[0,1].set_title("Precision for %s" % data_set_name)
     
-    #TODO placeholder, add other scores
-    axs[1,0].bar(clfs, accuracy_scores, color=bar_colors)
-    addlabels(axs[1,0], clfs, [round(score, round_scores_to) for score in accuracy_scores])
-    axs[1,0].set_title("TODO for %s" % data_set_name)
+    #recall
+    axs[1,0].bar(clfs, recall_scores, color=bar_colors)
+    addlabels(axs[1,0], clfs, [round(score, round_scores_to) for score in recall_scores])
+    axs[1,0].set_title("Recall for %s" % data_set_name)
     
     #TODO placeholder, add other scores
     axs[1,1].bar(clfs, accuracy_scores, color=bar_colors)
