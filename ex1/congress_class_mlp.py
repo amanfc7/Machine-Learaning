@@ -6,6 +6,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import precision_score, recall_score
 
 import numpy as np
 
@@ -138,11 +139,13 @@ def train_model(do_gridsearch=False, scaler_no=3, skip_eval=False):
             print(clf.score(X_test, y_test))
             print("accurancy from holdout\n")
     
-            #crossvalidation
-            # clf = MLPClassifier(solver='lbfgs', alpha=1e-5,
-                                # hidden_layer_sizes=(15, 2), 
-                                # random_state=1)
-            # scores = cross_val_score(clf, X, y, cv=10)
+            average = 'macro'
+            print(precision_score(y_test, clf.predict(X_test), average=average))
+            print("precision from holdout\n")
+            
+            print(recall_score(y_test, clf.predict(X_test), average= average))
+            print("recall from holdout\n")
+            
             print(scores)
             print("%0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     

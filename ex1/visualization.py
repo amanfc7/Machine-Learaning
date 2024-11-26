@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import precision_score, recall_score, f1_score
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -20,64 +20,49 @@ import sick_class_gpc
 import reviews_class_sparse_gpc
 import congress_class_gpc
 
+import wine_class_bbdt
+import second_ds_class_bbdt
+import congress_class_bbdt
+import reviews_class_bbdt
 
 
 
 def main():
-    # best_wine_class_mlp_clf = wine_class_mlp.train_model()
-    # # best_second_class_mlp_clf = second_ds_class_mlp.train_model()
-    # # best_congress_class_mlp_clf = congress_class_mlp.train_model()
-    # # best_reviews_class_mlp_clf = reviews_class_mlp.train_model()
 
-    # # best_wine_class_dt_clf = None # TODO
-    # best_wine_class_dt_clf = best_wine_class_mlp_clf #DUMMY
-    # # best_second_class_dt_clf = None
-    # # best_congress_class_dt_clf = None
-    # # best_reviews_class_dt_clf = None
-
-    # best_wine_class_gpc_clf = wine_class_gpc.train_model()
-    # # best_second_class_gpc_clf = None
-    # # best_congress_class_gpc_clf = None
-    # # best_reviews_class_gpc_clf = None
     
 
     best_wine_clfs = [wine_class_mlp.train_model(skip_eval=True), 
-                      wine_class_mlp.train_model(skip_eval=True),     #TODO: add decision tree clf
+                      wine_class_bbdt.train_model(skip_eval=True), 
                       wine_class_gpc.train_model()]
-    plot_evaluation_values('Wine - Unfinished', best_wine_clfs)
+    plot_evaluation_values('Wine', best_wine_clfs)
     
-    #TODO: add other clfs 
+    
     best_sick_clfs = [second_ds_class_mlp.train_model(skip_eval=True), 
-                      second_ds_class_mlp.train_model(skip_eval=True), #TODO: add decision tree clf
+                      second_ds_class_bbdt.train_model(skip_eval=True), 
                       sick_class_gpc.train_model()]
-    plot_evaluation_values('Sick - Unfinished', best_sick_clfs)
+    plot_evaluation_values('Sick', best_sick_clfs)
     
 
     best_congress_clfs = [congress_class_mlp.train_model(skip_eval=True), 
-                          congress_class_mlp.train_model(skip_eval=True),  #TODO: add decision tree clf
+                          congress_class_bbdt.train_model(skip_eval=True), 
                           congress_class_gpc.train_model()]
-    plot_evaluation_values('Congress - Unfinished', best_congress_clfs)
+    plot_evaluation_values('Congress', best_congress_clfs)
     
 
     best_reviews_clfs = [reviews_class_mlp.train_model(skip_eval=True), 
-                         reviews_class_mlp.train_model(skip_eval=True),     #TODO: add decision tree clf
+                         reviews_class_bbdt.train_model(skip_eval=True), 
                          reviews_class_sparse_gpc.train_model()]
     plot_evaluation_values('Reviews - Unfinished', best_reviews_clfs)
     
-def plot_evaluation_values(data_set_name, clfs):
+def plot_evaluation_values(data_set_name, clfs, average='macro'):
     round_scores_to = 3
     # average = 'weighted'
     # average = 'micro'
-    average = 'macro' #here we see the most difference between the values
+    # average = 'macro' #here we see the most difference between the values
     accuracy_scores = [clf.score(X_test, y_test) for (clf, X_test, y_test) in clfs]
-    try:
-        precision_scores = [precision_score(y_test, clf.predict(X_test)) for (clf, X_test, y_test) in clfs]
-    except ValueError:
-        precision_scores = [precision_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs] #maybe need other average?
-    try:
-        recall_scores = [recall_score(y_test, clf.predict(X_test)) for (clf, X_test, y_test) in clfs]
-    except ValueError:
-        recall_scores = [recall_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs]
+    precision_scores = [precision_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs]
+    recall_scores = [recall_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs]
+    f1_scores = [f1_score(y_test, clf.predict(X_test), average=average)  for (clf, X_test, y_test) in clfs]
     # print(accuracy_scores)
     
     fig, axs = plt.subplots(2, 2)
@@ -100,10 +85,10 @@ def plot_evaluation_values(data_set_name, clfs):
     addlabels(axs[1,0], clfs, [round(score, round_scores_to) for score in recall_scores])
     axs[1,0].set_title("Recall for %s" % data_set_name)
     
-    #TODO placeholder, add other scores
+    #F1
     axs[1,1].bar(clfs, accuracy_scores, color=bar_colors)
-    addlabels(axs[1,1], clfs, [round(score, round_scores_to) for score in accuracy_scores])
-    axs[1,1].set_title("TODO for %s" % data_set_name)
+    addlabels(axs[1,1], clfs, [round(score, round_scores_to) for score in f1_scores])
+    axs[1,1].set_title("F1 for %s" % data_set_name)
     
     plt.show()
     

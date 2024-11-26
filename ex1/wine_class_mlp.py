@@ -8,10 +8,11 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import precision_score, recall_score
 
 # import matplotlib.pyplot as plt
 import numpy as np
-from pprint import pprint
+# from pprint import pprint
 from ds_load_util import load_dataset
 
 import sys
@@ -116,6 +117,13 @@ def train_model(do_gridsearch=False, scaler_no=2, skip_eval=False):
             
             print(clf.score(X_test, y_test))
             print("accuracy from holdout\n")
+            
+            average = 'macro'
+            print(precision_score(y_test, clf.predict(X_test), average=average))
+            print("precision from holdout\n")
+            
+            print(recall_score(y_test, clf.predict(X_test), average= average))
+            print("recall from holdout\n")
             
             #crossvalidation
             print(scores)
