@@ -3,9 +3,10 @@
 from sklearn import preprocessing
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, DotProduct, ConstantKernel as C
-from sklearn.model_selection import cross_val_score, GridSearchCV, RandomizedSearchCV, train_test_split
-from sklearn.impute import SimpleImputer
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
 
 # import matplotlib.pyplot as plt
 import numpy as np
@@ -15,81 +16,63 @@ from ds_load_util import load_dataset
 
 import sys
 
+"""
+    Call with flag '-s' to do a gridsearch (default = no search)
+    Call with flag '--scaler' followed by a number to set the scaler used (default = StandardScaler)
+"""
 def main():
-    search = True
-    scaler_no=1
-    for arg in sys.argv:
+    search = False
+    scaler_no = 1
+    for i, arg in enumerate(sys.argv):
         if arg == '-s':
             search = True
+        if arg == '--scaler':
+            scaler_no = int(sys.argv[i+1])
     train_model(search,scaler_no)
 
-def train_model(do_search=False, scaler_no=1):
-    # Select scaler  
-    if scaler_no == 1:
-        scaler = preprocessing.StandardScaler()
-    elif scaler_no == 2:
-        scaler=preprocessing.MinMaxScaler()
-    elif scaler_no == 3:
-        scaler=preprocessing.RobustScaler()
-    elif scaler_no == 4:
-        scaler = preprocessing.MaxAbsScaler()
-    else:
-        scaler = None
+  # ----------------sick data set-------------------------
+"""
+    Parameters:
+        * scaler_no: 1 for preprocessing.StandardScaler(), 2 for preprocessing.MinMaxScaler(), 3 for preprocessing.RobustScaler(), 4 for preprocessing.MaxAbsScaler(), else no scaler. Default=1
+"""
+def train_model(do_search=False, scaler_no=1, skip_eval=False):
+
     
     # 1. import data
     X_train, X_test, y_train, y_test  = load_dataset('second2', 
-                                                    #preprocess=True, 
-                                                    #encoder=preprocessing.OrdinalEncoder(),
-                                                    # #encoder=preprocessing.OneHotEncoder(),
-                                                    # # imputer=SimpleImputer(strategy="constant", fill_value=-1),
-                                                    #imputer=SimpleImputer(),
-                                                    #scaler=scaler,
-                                                    # # scaler= preprocessing.StandardScaler(with_mean=False),
-                                                    #scaler= preprocessing.MaxAbsScaler(),
-                                                    #("normalizer", preprocessing.Normalizer()),
-                                                    )
+                                                       preprocess=True, 
+                                                        encoder=preprocessing.OrdinalEncoder(),
+                                                     # # encoder=preprocessing.OneHotEncoder(),
+                                                      imputer=SimpleImputer(strategy="constant", fill_value=-1),
+                                                        # imputer=SimpleImputer(),
+                                                        scaler_no=scaler_no,
+                                                     # # scaler= preprocessing.StandardScaler(with_mean=False),
+                                                     # # ("normalizer", preprocessing.Normalizer()),
+                                                     )
     
-    # # 2. data exploration and preprocessing
-    categories_to_transform = ['sex', 'on_thyroxine', 'query_on_thyroxine',
-                                  'on_antithyroid_medication','sick','pregnant',
-                                  'thyroid_surgery','I131_treatment','query_hypothyroid',
-                                  'query_hyperthyroid','lithium','goitre',
-                                       'tumor','hypopituitary','psych','TSH_measured',
-                                  'T3_measured','TT4_measured','T4U_measured',
-                                  'FTI_measured','referral_source']
-   
-    enc = preprocessing.OrdinalEncoder()
-   
-    X_train[categories_to_transform] = enc.fit_transform(X_train[categories_to_transform])
-    X_test[categories_to_transform] = enc.transform(X_test[categories_to_transform])
-   
-    enc = Pipeline(steps=[
-        # ("encoder", preprocessing.OrdinalEncoder()),
-        # ("encoder", preprocessing.OneHotEncoder()),
-        ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
-        ("scaler", scaler),
-        # ("scaler", preprocessing.StandardScaler(with_mean=False)),
-        # ("normalizer", preprocessing.Normalizer()),
-    ])
-    
-    X_train = enc.fit_transform(X_train)
-    X_test = enc.transform(X_test)
+    # 2. data exploration and preprocessing
+    # in ds_load_util
     
     #NOTE: could have gridsearch over different encoders etc via lambda function or similar
     
-    kernels = [RBF(length_scale=0.1), Matern(length_scale=0.1), RationalQuadratic(length_scale=0.1)]
-
-
     # 2. gridsearch
     # parameter tuning
     if do_search:
+        length_scales = [0.1, 1.0, 1.5, 2.0]
+        # Create kernels with different length_scale values
+        kernels = [
+        RBF(length_scale=l) for l in length_scales
+        ] + [
+        Matern(length_scale=l) for l in length_scales
+        ] + [
+        RationalQuadratic(length_scale=l) for l in length_scales
+        ]
+
         parameters = {
-            "kernel": kernels,
-            "optimizer": [None, "fmin_l_bfgs_b"],
-            "max_iter_predict": [100, 300],
-            #"length_scale" : [1.5, 2.0],
-            #"length_bond_scales" : [(1e-2, 1e2), (1e-3, 1e3)],
-            "n_restarts_optimizer": [0, 2],
+            "kernel": kernels,  # Use the dynamically created kernels
+            "optimizer": [None, "fmin_l_bfgs_b"],  # Optimizer options
+            "max_iter_predict": [100, 300],  # Prediction iterations
+            "n_restarts_optimizer": [0, 2],  # Restarts for optimizer
         }
 
         search = RandomizedSearchCV(
@@ -125,45 +108,32 @@ def train_model(do_search=False, scaler_no=1):
             f"the grid search: {search.best_score_:.3f}"
         )
         print(f"Accuracy on test set: {test_accuracy:.3f}")
-        
-        # Print the results of all the parameter combinations
-        print("\nResults of each parameter combination:")
-        results = search.cv_results_
-        for i in range(len(results['mean_test_score'])):
-            # Extracting the parameters for each combination
-            kernel = results['params'][i].get('kernel', 'N/A')
-            optimizer = results['params'][i].get('optimizer', 'N/A')
-            accuracy = results['mean_test_score'][i]
-            print(f"Scaler: {scaler_no}, Kernel: {kernel}, Optimizer: {optimizer}, Accuracy: {accuracy:.3f}")
-    
-    else:
-        if scaler_no == 1: #StandardScaler
-            clf = GaussianProcessClassifier()
-        elif scaler_no == 2:# MinMaxScaler
-            clf = GaussianProcessClassifier()
-        elif scaler_no == 3:#RobustScaler
-            clf = GaussianProcessClassifier()
-        else: #no scaler
-            clf = GaussianProcessClassifier()
-            
-        
-        
+
+    else: 
+        clf = GaussianProcessClassifier(
+            kernel=RBF(),               # RBF, Matern, RationalQuadratic
+            optimizer="fmin_l_bfgs_b",
+            max_iter_predict= 300,
+            n_restarts_optimizer= 2,
+        )
+
         clf.fit(X_train, y_train)
-        
+
         # accuracy & precision, false positives, false negatives
-        scores = cross_val_score(clf, X_train, y_train, cv=10)
-
-        print(clf.score(X_test, y_test))
-        print("accurancy from holdout\n")
-
-        #crossvalidation
-        print(scores)
-        print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
+        if not skip_eval:
+            scores = cross_val_score(clf, X_train, y_train, cv=10)
+    
+            print(clf.score(X_test, y_test))
+            print("accurancy from holdout\n")
+    
+            #crossvalidation
+            print(scores)
+            print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     
     #some visulization?
     
     print("Scaler number: %d" % scaler_no)
-    
+
     return (clf, X_test, y_test)
 
 
