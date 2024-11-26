@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.impute import SimpleImputer
@@ -159,7 +160,7 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
         
         # for Removing features with low variance:
 
-        variance_threshold = VarianceThreshold(threshold=0.02)  
+        variance_threshold = VarianceThreshold(threshold=0.01)  
         features_transformed = variance_threshold.fit_transform(features)
         
         features = pd.DataFrame(features_transformed, columns=original_columns[variance_threshold.get_support()])
@@ -192,7 +193,7 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
 
 # Function to plot comparison for missing values, encoding, and other aspects:
 
-def plot_comparison(before, after, dataset_name):
+def plot_comparison(before, after, dataset_name, save_dir):
     fig, axs = plt.subplots(2, 2, figsize=(14, 12))
 
     # 1st Plot: Missing Values Before and After Preprocessing:
@@ -239,10 +240,15 @@ def plot_comparison(before, after, dataset_name):
     axs[1, 1].set_ylabel('Number of Features')
 
     plt.tight_layout()
+
+    # to save the generated plots:
+
+    save_path = os.path.join(save_dir, f'{dataset_name}_comparison.png')
+    
+    plt.savefig(save_path)
+
     plt.show()
-
-
-
+     
 # to Define file paths for datasets:
 
 datasets = {
@@ -266,16 +272,18 @@ wine_after = preprocess_data(wine_data.copy(), "Wine")
 congressional_voting_after = preprocess_data(congressional_voting.copy(), "CongressionalVotingID")
 sick_data_after = preprocess_data(sick_data.copy(), "Sick")
 
-# to finally Save preprocessed datasets as csv files: 
+# to finally Save preprocessed datasets as csv files and the plots: 
 
 amazon_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\amazon_review_preprocessed.csv", index=False)
 wine_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\wine_preprocessed.csv", index=False)
 congressional_voting_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\congressional_voting_preprocessed.csv", index=False)
 sick_data_after.to_csv(r"C:\Users\amanf\Downloads\ML_Ex_1\csv\sick_data_preprocessed.csv", index=False)
 
+save_dir = r"C:\Users\amanf\Downloads\ML_Ex_1\plots\preprocessing"
+
 # to Plot the comparisons:
 
-plot_comparison(amazon, amazon_after, "Amazon Review")
-plot_comparison(wine_data, wine_after, "Wine")
-plot_comparison(congressional_voting, congressional_voting_after, "Congressional Voting ID")
-plot_comparison(sick_data, sick_data_after, "Sick")
+plot_comparison(amazon, amazon_after, "Amazon Review", save_dir)
+plot_comparison(wine_data, wine_after, "Wine", save_dir)
+plot_comparison(congressional_voting, congressional_voting_after, "Congressional Voting ID", save_dir)
+plot_comparison(sick_data, sick_data_after, "Sick", save_dir)
