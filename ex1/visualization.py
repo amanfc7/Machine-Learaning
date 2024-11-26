@@ -4,6 +4,8 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+import time
 # from pprint import pprint
 # import sys
 
@@ -17,7 +19,9 @@ import reviews_class_mlp
 import wine_class_gpc
 import sick_class_gpc
 # import reviews_class_gpc
-import reviews_class_sparse_gpc
+# import reviews_class_sparse_gpc
+import reviews_class_sparse_gpc_OLD as reviews_class_sparse_gpc
+# import reviews_class_gpc as reviews_class_sparse_gpc
 import congress_class_gpc
 
 import wine_class_bbdt
@@ -28,37 +32,49 @@ import reviews_class_bbdt
 
 
 def main():
-
+    # best_wine_clfs = []
+    # for clf in [wine_class_mlp, 
+    #                   wine_class_bbdt, 
+    #                   wine_class_gpc]:
+    #     t0= time.time()
+    #     best_wine_clfs.append(clf.train_model(skip_eval=True))
+    #     print(time.time() - t0)
+    # plot_evaluation_values('Wine', best_wine_clfs)
+    
+    
+    # best_sick_clfs = []
+    # for clf in [second_ds_class_mlp, 
+    #                   second_ds_class_bbdt, 
+    #                   sick_class_gpc]:
+    #     t0= time.time()
+    #     best_sick_clfs.append(clf.train_model(skip_eval=True))
+    #     print(time.time() - t0)
+    # plot_evaluation_values('Sick', best_sick_clfs) #average = 'binary' might be better, but issue with encoding
     
 
-    best_wine_clfs = [wine_class_mlp.train_model(skip_eval=True), 
-                      wine_class_bbdt.train_model(skip_eval=True), 
-                      wine_class_gpc.train_model()]
-    plot_evaluation_values('Wine', best_wine_clfs)
-    
-    
-    best_sick_clfs = [second_ds_class_mlp.train_model(skip_eval=True), 
-                      second_ds_class_bbdt.train_model(skip_eval=True), 
-                      sick_class_gpc.train_model()]
-    plot_evaluation_values('Sick', best_sick_clfs)
+    # best_congress_clfs = []
+    # for clf in [congress_class_mlp, 
+    #                       congress_class_bbdt, 
+    #                       congress_class_gpc]:
+    #     t0= time.time()
+    #     best_congress_clfs.append(clf.train_model(skip_eval=True))
+    #     print(time.time() - t0)
+    # plot_evaluation_values('Congress', best_congress_clfs)  #average = 'binary' might be better, but issue with encoding
     
 
-    best_congress_clfs = [congress_class_mlp.train_model(skip_eval=True), 
-                          congress_class_bbdt.train_model(skip_eval=True), 
-                          congress_class_gpc.train_model()]
-    plot_evaluation_values('Congress', best_congress_clfs)
-    
-
-    best_reviews_clfs = [reviews_class_mlp.train_model(skip_eval=True), 
-                         reviews_class_bbdt.train_model(skip_eval=True), 
-                         reviews_class_sparse_gpc.train_model()]
-    plot_evaluation_values('Reviews - Unfinished', best_reviews_clfs)
+    best_reviews_clfs = []
+    for clf in [
+            reviews_class_mlp, 
+            reviews_class_bbdt, 
+            reviews_class_sparse_gpc
+                          ]:
+        t0= time.time()
+        best_reviews_clfs.append(clf.train_model(skip_eval=True))
+        print(time.time() - t0)
+    plot_evaluation_values('Reviews', best_reviews_clfs)
     
 def plot_evaluation_values(data_set_name, clfs, average='macro'):
     round_scores_to = 3
-    # average = 'weighted'
-    # average = 'micro'
-    # average = 'macro' #here we see the most difference between the values
     accuracy_scores = [clf.score(X_test, y_test) for (clf, X_test, y_test) in clfs]
     precision_scores = [precision_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs]
     recall_scores = [recall_score(y_test, clf.predict(X_test), average=average) for (clf, X_test, y_test) in clfs]

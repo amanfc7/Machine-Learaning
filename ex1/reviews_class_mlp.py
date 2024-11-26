@@ -51,17 +51,7 @@ def train_model(do_search=False, scaler_no=2, skip_eval=False):
                                                      )
     
     # # 2. data exploration and preprocessing
-    # enc = Pipeline(steps=[
-    #     ("encoder", preprocessing.OrdinalEncoder()),
-    #     # ("encoder", preprocessing.OneHotEncoder()),
-    #     ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
-    #     ("scaler", preprocessing.StandardScaler()),
-    #     # ("scaler", preprocessing.RobustScaler()),
-    #     # ("scaler", preprocessing.MaxAbsScaler()),
-    #     # ("scaler", preprocessing.MinMaxScaler()),
-    #     # ("scaler", preprocessing.StandardScaler(with_mean=False)),
-    #     # ("normalizer", preprocessing.Normalizer()),
-    # ])
+    # in ds_load_util
     
     #NOTE: could have gridsearch over different encoders etc via lambda function or similar
     
@@ -136,7 +126,7 @@ def train_model(do_search=False, scaler_no=2, skip_eval=False):
         
         clf.fit(X_train, y_train)
         
-        # accuracy & precision, false positives, false negatives
+        # accuracy & precision, recall
         if not skip_eval:
             scores = cross_val_score(clf, X_train, y_train, cv=10)
             print(clf.score(X_test, y_test))
@@ -153,7 +143,6 @@ def train_model(do_search=False, scaler_no=2, skip_eval=False):
             print(scores)
             print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     
-    #some visulization?
     
     print("Scaler number: %d" % scaler_no)
 

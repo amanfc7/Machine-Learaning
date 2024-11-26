@@ -138,7 +138,7 @@ def train_model(do_search=False, scaler_no=1, skip_eval=False):
         
         clf.fit(X_train, y_train)
         
-        # accuracy & precision, false positives, false negatives
+        # accuracy & precision, recall
         if not skip_eval:
             scores = cross_val_score(clf, X_train, y_train, cv=10)
     
@@ -156,7 +156,7 @@ def train_model(do_search=False, scaler_no=1, skip_eval=False):
             print(scores)
             print("CV: %0.2f accuracy with a standard deviation of %0.2f" % (scores.mean(), scores.std()))
     
-    #some visulization?
+
     
     print("Scaler number: %d" % scaler_no)
 

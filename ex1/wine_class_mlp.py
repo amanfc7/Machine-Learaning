@@ -111,7 +111,7 @@ def train_model(do_gridsearch=False, scaler_no=2, skip_eval=False):
     
     
         # 4. performance evaluation
-        # accuracy & precision, false positives, false negatives
+        # accuracy & precision, recall
         if not skip_eval:
             scores = cross_val_score(clf, X_train, y_train, cv=10)
             
