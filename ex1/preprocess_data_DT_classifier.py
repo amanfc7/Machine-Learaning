@@ -194,7 +194,7 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
 # Function to plot comparison for missing values, encoding, and other aspects:
 
 def plot_comparison(before, after, dataset_name, save_dir):
-    fig, axs = plt.subplots(2, 2, figsize=(14, 12))
+    fig, axs = plt.subplots(2, 2, figsize=(14, 12))  
 
     # 1st Plot: Missing Values Before and After Preprocessing:
     missing_before = before.isin(["?", "unknown", np.nan]).sum()
@@ -218,22 +218,14 @@ def plot_comparison(before, after, dataset_name, save_dir):
 
     axs[0, 1].bar(['Categorical', 'Numerical'], [categorical_before, numerical_before], alpha=0.7, color='skyblue', label='Before')
     axs[0, 1].bar(['Categorical', 'Numerical'], [categorical_after, numerical_after], alpha=0.7, color='orange', label='After')
-    axs[0, 1].set_title(f'{dataset_name} - Categorical vs. Numerical Columns Before and After Encoding')
-    axs[0, 1].set_ylabel('Count of Columns')
+    axs[0, 1].set_title(f'{dataset_name} - Categorical and Numerical Columns Before and After Encoding')
+    axs[0, 1].set_ylabel('Count')
     axs[0, 1].legend()
 
-    # 3rd Plot: Distribution of Target Column Before and After Encoding:
-    if 'target_column' in before.columns:
-        axs[1, 0].set_title(f'{dataset_name} - Target Column Distribution Before and After Encoding')
-        before_target_dist = before['target_column'].value_counts()
-        after_target_dist = after['target_column'].value_counts()
-        before_target_dist.plot(kind='bar', ax=axs[1, 0], alpha=0.7, color='skyblue', label='Before')
-        after_target_dist.plot(kind='bar', ax=axs[1, 0], alpha=0.7, color='orange', label='After')
-        axs[1, 0].set_ylabel('Frequency')
-        axs[1, 0].legend()
+    axs[1, 0].axis('off')  
 
-    # 4th Plot: Feature Count Before and After Preprocessing:
-    feature_before_count = before.shape[1] - 1  
+    # 3rd Plot: Feature Count Before and After Preprocessing:
+    feature_before_count = before.shape[1] - 1 
     feature_after_count = after.shape[1] - 1  
     axs[1, 1].bar(['Before Preprocessing', 'After Preprocessing'], [feature_before_count, feature_after_count], alpha=0.7, color='skyblue')
     axs[1, 1].set_title(f'{dataset_name} - Number of Features Before and After Preprocessing')
