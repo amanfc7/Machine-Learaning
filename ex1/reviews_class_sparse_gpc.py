@@ -127,7 +127,7 @@ def cross_validate(n_iter, number_samples, scaler_no, kernel_type, n_splits=2):
     all_predictions = []
 
     # Cross-validation loop
-    for fold, (train_idx, test_idx) in enumerate (kf.split(X_train)):
+    for fold, (train_idx, test_idx) in enumerate(kf.split(X_train)):
         # Split data into training and validation for each fold
         X_train_fold, X_test_fold = X_train[train_idx], X_train[test_idx]
         y_train_fold, y_test_fold = y_train[train_idx], y_train[test_idx]
@@ -153,75 +153,39 @@ def cross_validate(n_iter, number_samples, scaler_no, kernel_type, n_splits=2):
     print(f"Average accuracy across {n_splits} folds: {avg_accuracy}")
     print(f"Standard Deviation of accuracy: {std_accuracy}")
 
-    return avg_accuracy, std_accuracy, all_predictions  # Return both average and standard deviation
-
-
-
-def simple_train_test(n_iter, number_samples, scaler_no, kernel_type):
-    # Select scaler
-    if scaler_no == 1:
-        scaler = preprocessing.StandardScaler()
-    elif scaler_no == 2:
-        scaler = preprocessing.MinMaxScaler()
-    elif scaler_no == 3:
-        scaler = preprocessing.RobustScaler()
-    elif scaler_no == 4:
-        scaler = preprocessing.MaxAbsScaler()
-    else:
-        scaler = None
-
-    # Load dataset
-    X_train, X_test, y_train, y_test = load_dataset(
-        'reviews',
-        preprocess=True,
-        imputer=SimpleImputer(strategy="constant", fill_value=-1),
-        scaler=scaler,
-    )
-
-    # Encode y data
-    y_train = preprocessing.LabelEncoder().fit_transform(y_train)
-    y_test = preprocessing.LabelEncoder().fit_transform(y_test)
-
-    # Split data into train-test split
-    classifier = GPClassifier(num_inducing_points=number_samples, kernel_type=kernel_type)
-    classifier.fit(X_train, y_train, num_epochs=n_iter)
-    
-    accuracy = classifier.score(X_test, y_test)
-    predictions = classifier.predict(X_test)
-    print(f"Test accuracy: {accuracy}")
-    print(f"Predictions on test set: {predictions}")
-    
-    return accuracy, predictions
-
+    return avg_accuracy, std_accuracy, all_predictions  # Return all required data
 
 
 def main():
     # Set hyperparameter grid
-    n_iter_values = [100]        #[50, 100, 200, 500, 1000]  # Different number of iterations (epochs)
-    number_samples_values = [700]         #[100, 500, 1000, 10000]  # Different number of inducing points
+    n_iter_values = [20]  # [50, 100, 200, 500, 1000]  # Different number of iterations (epochs)
+    number_samples_values = [700]  # [100, 500, 1000, 10000]  # Different number of inducing points
     scaler_values = [4]  # Different scalers
-    kernel_types =  ['RBF'] #['RBF', 'Matern']  # Different kernel types
-    
+    kernel_types = ['RBF']  # ['RBF', 'Matern']  # Different kernel types
+
     # Flag to control cross-validation
     use_cross_validation = True  # Set to False to skip cross-validation
 
     best_accuracy = 0
     best_params = {}
 
-    # Iterate over hyperparameters and perform cross-validation 
+    # Iterate over hyperparameters and perform cross-validation
     for n_iter in n_iter_values:
         for number_samples in number_samples_values:
             for scaler_no in scaler_values:
                 for kernel_type in kernel_types:
                     print(f"\nTesting with n_iter={n_iter}, number_samples={number_samples}, scaler={scaler_no}, kernel={kernel_type}")
                     if use_cross_validation:
-                        avg_accuracy, std_accuracy = cross_validate(n_iter, number_samples, scaler_no, kernel_type)
+                        # Correctly handle the returned values
+                        avg_accuracy, std_accuracy, all_predictions = cross_validate(n_iter, number_samples, scaler_no, kernel_type)
                     else:
-                        avg_accuracy, std_accuracy = simple_train_test(n_iter, number_samples, scaler_no, kernel_type)
+                        accuracy, predictions = simple_train_test(n_iter, number_samples, scaler_no, kernel_type)
+                        avg_accuracy = accuracy
+                        all_predictions = predictions
 
                     print(f"Average Accuracy: {avg_accuracy}")
                     print(f"Standard Deviation of Accuracy: {std_accuracy}")
-                    
+
                     if avg_accuracy > best_accuracy:
                         best_accuracy = avg_accuracy
                         best_params = {'n_iter': n_iter, 'number_samples': number_samples, 'scaler': scaler_no, 'kernel': kernel_type}
@@ -230,8 +194,7 @@ def main():
     print(best_params)
     print(f"Best Average Accuracy: {best_accuracy}")
 
-    
-
 
 if __name__ == '__main__':
     main()
+
