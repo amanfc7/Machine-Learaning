@@ -6,7 +6,7 @@ from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, Dot
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
+from sklearn.decomposition import PCA 
 # import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -66,7 +66,7 @@ def train_model(do_search=False, scaler_no=2, skip_eval=False):
     # 2. gridsearch
     # parameter tuning
     if do_search:
-        length_scales = [1.0, 1.5, 2.0]
+        length_scales = 1.0 #[1.0, 1.5, 2.0]
         # Create kernels with different length_scale values
         kernels = [
         RBF(length_scale=l) for l in length_scales
@@ -79,12 +79,18 @@ def train_model(do_search=False, scaler_no=2, skip_eval=False):
         parameters = {
             "kernel": kernels,  # Use the dynamically created kernels
             "optimizer": [None, "fmin_l_bfgs_b"],  # Optimizer options
-            "max_iter_predict": [100, 300],  # Prediction iterations
-            "n_restarts_optimizer": [0, 2],  # Restarts for optimizer
+            "max_iter_predict": 1, #[100, 300],  # Prediction iterations
+            "n_restarts_optimizer": 0, #[0, 2],  # Restarts for optimizer
+            #"pca__n_components" : [0.95, 0.99]
         }
 
         search = RandomizedSearchCV(
             estimator=GaussianProcessClassifier(random_state=1),
+            # estimator=Pipeline([
+            #    ('scaler', preprocessing.MinMaxScaler()),  # You can switch this scaler as per your need
+            #    ('pca', PCA()),  # PCA for dimensionality reduction
+            #    ('clf', GaussianProcessClassifier(random_state=1))  # GPC
+            # ]),
             param_distributions=parameters,
             # parameter_grid,
             n_iter=60,
@@ -115,11 +121,15 @@ def train_model(do_search=False, scaler_no=2, skip_eval=False):
         print(f"Accuracy on test set: {test_accuracy:.3f}")
 
     else:
+        # clf = Pipeline([
+        #    ('scaler', preprocessing.MinMaxScaler()),  # change if needed 
+        #    ('pca', PCA(n_components=0.95)),  # PCA for dimensionality reduction, retaining 95% variance
+        #    ('clf', GaussianProcessClassifier(
         clf = GaussianProcessClassifier(
             kernel=RationalQuadratic(length_scale=1.5),               # RBF, Matern, RationalQuadratic
             optimizer="fmin_l_bfgs_b",
-            max_iter_predict= 300,
-            n_restarts_optimizer= 2,
+            max_iter_predict= 1, #300,
+            n_restarts_optimizer= 0 #2,
         )
 
 
