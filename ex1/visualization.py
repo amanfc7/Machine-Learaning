@@ -32,34 +32,34 @@ import reviews_class_bbdt
 
 
 def main():
-    # best_wine_clfs = []
-    # for clf in [wine_class_mlp, 
-    #                   wine_class_bbdt, 
-    #                   wine_class_gpc]:
-    #     t0= time.time()
-    #     best_wine_clfs.append(clf.train_model(skip_eval=True))
-    #     print(time.time() - t0)
-    # plot_evaluation_values('Wine', best_wine_clfs)
+    best_wine_clfs = []
+    for clf in [wine_class_mlp, 
+                      wine_class_bbdt, 
+                      wine_class_gpc]:
+        t0= time.time()
+        best_wine_clfs.append(clf.train_model(skip_eval=True))
+        print(time.time() - t0)
+    plot_evaluation_values('Wine', best_wine_clfs)
     
     
-    # best_sick_clfs = []
-    # for clf in [second_ds_class_mlp, 
-    #                   second_ds_class_bbdt, 
-    #                   sick_class_gpc]:
-    #     t0= time.time()
-    #     best_sick_clfs.append(clf.train_model(skip_eval=True))
-    #     print(time.time() - t0)
-    # plot_evaluation_values('Sick', best_sick_clfs) #average = 'binary' might be better, but issue with encoding
+    best_sick_clfs = []
+    for clf in [second_ds_class_mlp, 
+                      second_ds_class_bbdt, 
+                      sick_class_gpc]:
+        t0= time.time()
+        best_sick_clfs.append(clf.train_model(skip_eval=True))
+        print(time.time() - t0)
+    plot_evaluation_values('Sick', best_sick_clfs) #average = 'binary' might be better, but issue with encoding
     
 
-    # best_congress_clfs = []
-    # for clf in [congress_class_mlp, 
-    #                       congress_class_bbdt, 
-    #                       congress_class_gpc]:
-    #     t0= time.time()
-    #     best_congress_clfs.append(clf.train_model(skip_eval=True))
-    #     print(time.time() - t0)
-    # plot_evaluation_values('Congress', best_congress_clfs)  #average = 'binary' might be better, but issue with encoding
+    best_congress_clfs = []
+    for clf in [congress_class_mlp, 
+                          congress_class_bbdt, 
+                          congress_class_gpc]:
+        t0= time.time()
+        best_congress_clfs.append(clf.train_model(skip_eval=True))
+        print(time.time() - t0)
+    plot_evaluation_values('Congress', best_congress_clfs)  #average = 'binary' might be better, but issue with encoding
     
 
     best_reviews_clfs = []
