@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#vgl. 03, 04, 06, 07
 
 class DT_Regressor():
     
     """
-    
+    Parameters:
         max_depth: max depth of decision tree. 0 for Zero Rule, 1 for One Rule, -1 for unlimited
         split_on_decision: how many branches per inner node, min 2
         compute_split_alg: the algorithm used to compute the best split of the data
             should be one out of "error_rate", "information_gain", "gini_index", "variance_reduction", ???
+            TODO: actually, might neeed to different, e.g. means squared error (MSE), mean absolute error (MAE)
+        TODO: something about (pre-)pruning
     """
     def __init__(self, max_depth=-1, split_on_decision=2, compute_split_alg="error_rate"):
         pass
@@ -49,7 +52,10 @@ class DT_Regressor():
         
     class LeafNode(TreeNode):
         
-        def __init__(self):
+        """
+            prediction value should either get set to the value of the average of all values contained in this leaf node
+        """
+        def __init__(self, prediction_value):
             pass
         
         def get_prediction(self, X_i):
