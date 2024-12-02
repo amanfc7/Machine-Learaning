@@ -5,7 +5,8 @@
 from DT_regressor import DT_Regressor
 
 class RandomForestCongressor():
-    def __init__():
+    
+    def __init__(self):
         pass
 
 def main():
