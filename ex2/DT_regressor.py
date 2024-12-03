@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 #vgl. 03, 04, 06, 07
 
 class DT_Regressor():
@@ -20,25 +22,38 @@ class DT_Regressor():
         self.tree_root = None
     
     
+
+    
     """
         trains the model
     """
     def fit(self, X, y):
-        pass
+        if self.max_depth == 0:
+            #Zero Rule
+            self.tree_root = self.LeafNode(np.mean(y,axis=0))
+        else:
+            i = self.max_depth
+            while i != 0:
+                i -= 1
+                # add some inner nodes
+                # probably want to do this recursively, actually, would not need below then
+            
+                if i == 0 or False: #TODO: False should be replaced with only one value remaining in box
+                    #add leaf nodes
+                    pass
     
     """
         predicts and returns y for the given X
     """
     def predict(self, X):
-        y = [] # TODO: might want a numpy array here instead or pd dataframe?
-        if self.tree_root = None:
+        y = [] 
+        if self.tree_root == None:
             pass #raise Error or just invalid value?
         else:
             for X_i in X:
                 y.append(self.tree_root.get_prediction(X_i))
-            return y
+            return np.array(y)
                 
-    
     
     class TreeNode():
         
@@ -49,6 +64,12 @@ class DT_Regressor():
                 self.children = None
         
         def get_prediction(self, X_i):
+            pass
+        
+        def add_child_node(self, node):
+            #prbly add node at index i in self.children, then increase local i by one, raise error if i >= num_children instead
+            # could also try assignment directly and catch TypeError (Child node) or IndexError (Full inner node)
+            #might instead want to add all children at once
             pass
         
     class InnerNode(TreeNode):
@@ -78,10 +99,18 @@ class DT_Regressor():
         def get_prediction(self, X_i):
             #return ´own prediction value
             return self.prediction_value
+    
 
 
 def main():
-    pass
+    X = np.array([[1,2], [3, 4]])
+    y = np.array([0.5,0.6])
+    # y = np.array([[0.5,0.6], 
+    #               [0.6,0.7]])
+    reg = DT_Regressor(max_depth=0)
+    reg.fit(X, y)
+    print(reg.predict(X))
+    print(reg.predict(X).shape)
 
 if __name__ == '__main__':
     main()
