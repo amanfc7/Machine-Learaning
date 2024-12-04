@@ -32,15 +32,26 @@ class DT_Regressor():
             #Zero Rule
             self.tree_root = self.LeafNode(np.mean(y,axis=0))
         else:
-            i = self.max_depth
-            while i != 0:
-                i -= 1
-                # add some inner nodes
-                # probably want to do this recursively, actually, would not need below then
+            self.tree_root = self._fit(X, y, self.max_depth)
+            # i = self.max_depth
+            # while i != 0:
+                # i -= 1
+                ## add some inner nodes
+                # #probably want to do this recursively, actually, would not need below then
             
-                if i == 0 or False: #TODO: False should be replaced with only one value remaining in box
-                    #add leaf nodes
-                    pass
+                # if i == 0 or False: #TODO: False should be replaced with only one value remaining in box
+                    ## add leaf nodes
+                    # pass
+                    
+    def _fit(self, X, y, i):
+        if i == 0 or False: #TODO: False should be replaced with only one value remaining in box
+            #add leaf nodes
+            return self.LeafNode(np.mean(y,axis=0))
+        else:
+            # return an inner node with children set by recursive calls to _fit(), with i-1 and probably adjusted X, y 
+            #    --> divide X based on whatever splitting criterion I calculate, then pass only the respective parts of X and the corresponding parts of y to the repective recursive calls
+            pass
+        
     
     """
         predicts and returns y for the given X
