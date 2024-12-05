@@ -50,7 +50,8 @@ class DT_Regressor():
             (more than one target column)
     """
     def _fit(self, X, y, i):
-        if X.ndim == 1: 
+        # if X.ndim == 1: 
+        if X.shape[0] == 1:
             #only one sample left, we want to predict its y-value(s) 
             return self.LeafNode(y)
         elif i == 0:
@@ -60,12 +61,24 @@ class DT_Regressor():
             # return an inner node with children set by recursive calls to _fit(), with i-1 and split X, y 
             #    --> divide X based on whatever splitting criterion I calculate, then pass only the respective parts of X and the corresponding parts of y to the repective recursive calls
             test = self._create_split(X, y)
-            children = [self._fit(X, y, i-1) for j in range(self.split_on_decision)] #TODO: split X, y
+            masks = [[test(X_i) == j for X_i in X] for j in range(self.split_on_decision)] #TODO: could probably make this more efficient by better utilizing numpy
+            # print(X)
+            # print(X.ndim)
+            # print(X.shape)
+            # print(masks)
+            # print(i)
+            children = [self._fit(X[mask,:], y[mask], i-1) for mask in masks] #split X, y by selecting just certain parts
             return self.InnerNode(test, children)
         
     def _create_split(self, X, y):
-        return lambda X_i: 0
-        # pass
+        def test(X_i):  #TODO: make this propa
+            for i in range(1, self.split_on_decision):
+                if X_i[0] > i:
+                    return i
+                else:
+                    return 0
+        return test
+
         
     
     """
@@ -129,9 +142,12 @@ class DT_Regressor():
 def main():
     X = np.array([[1,2, 5], [3, 4,8]])
     y = np.array([0.5,0.6])
+    # y = np.array([[0.5],[0.6]])
     # y = np.array([[0.5,0.6], 
     #               [0.6,0.7]])
-    reg = DT_Regressor(max_depth=1)
+    # reg = DT_Regressor(max_depth=0)
+    # reg = DT_Regressor(max_depth=1)
+    reg = DT_Regressor()
     reg.fit(X, y)
     print(reg.predict(X))
     print(reg.predict(X).shape)
