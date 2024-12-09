@@ -6,7 +6,7 @@ import random
 
 #vgl. 03, 04, 06, 07
 
-class DT_Regressor():
+class DTRegressor():
     
     """
     Parameters:
@@ -54,7 +54,7 @@ class DT_Regressor():
             #Zero Rule
             self.tree_root = self.LeafNode(np.mean(y,axis=0))
         else:
-            self.tree_root = self._fit(X, y, self.max_depth)
+            self.tree_root = self._fit(X, y, 0)
             # i = self.max_depth
             # while i != 0:
                 # i -= 1
@@ -64,19 +64,21 @@ class DT_Regressor():
                 # if i == 0 or False: #TODO: False should be replaced with only one value remaining in box
                     ## add leaf nodes
                     # pass
+        print("*"*10+"Training finished"+"*"*10)
                     
     """
         X should be a numpy array of shape(number_of_samples, number_of_features)
         should be able to correctly learn multiple regression values at the same time 
             (more than one target column)
     """
-    def _fit(self, X, y, i):
+    def _fit(self, X, y, depth):
         # if X.ndim == 1: 
         if X.shape[0] == 1:
             #only one sample (row) left, we want to predict its y-value(s) 
             return self.LeafNode(y)
-        elif i == 0:
+        elif depth == self.max_depth:
             #max depth reached, we want to predict the mean(s) of its y-values 
+            # print("max depth reached")
             return self.LeafNode(np.mean(y,axis=0))
         elif np.max(np.sqrt(self._mse(y.mean(axis=0), y))) < self.epsilon:  
             #standard deviation for (all) predicted values is smaller than our target value, stop early
@@ -93,39 +95,56 @@ class DT_Regressor():
             # print(X.shape)
             # print(masks)
             # print(i)
-            children = [self._fit(X[mask,:], y[mask], i-1) for mask in masks] #split X, y by selecting just certain parts
+            children = [self._fit(X[mask,:], y[mask], depth+1) for mask in masks] #split X, y by selecting just certain parts
             return self.InnerNode(test, children)
         
     def _create_split(self, X, y):
-        best_split = lambda X_i: 0
+        # best_split = lambda X_i: 0
         best_error = float("inf")
+        best_column_to_split = 0
+        best_feature_value_to_split_on = 0
+        
+        # print("------ calculating new split ------")
         
         #initial brute force attempt
-        for i, sample in enumerate(X):
-            for j, feature in enumerate(sample):
+        for row, sample in enumerate(X):
+            for column, feature_value in enumerate(sample):
+                # print("sample, feature:")
+                # print(sample)
+                # print(feature)
+                # print("comparing colum %d" % j)
                 #split on feature
-                mask_0 = X[:, j] < feature
+                mask_0 = X[:, column] < feature_value
                 X_0 = X[mask_0]
                 y_0 = y[mask_0]
                 
-                mask_1 = X[:, j] >= feature
+                mask_1 = X[:, column] >= feature_value
                 X_1 = X[mask_1]
                 y_1 = y[mask_1]
                 
+                # print("X_0, X_1")
+                # print(X_0)
+                # print(X_1)
                 if X_0.shape[0] == 0 or X_1.shape[0] == 0:
                     #we have hit an outermost value, a split is empty so not good
+                    # print("split no good")
                     continue
                     
                 # print(X_0)
                 # print(X_1)
+                cur_y_predict_0 = np.mean(y_0,axis=0)
+                cur_y_predict_1 = np.mean(y_1,axis=0)
                 
-                error_0 = np.max(self.goodness_test(np.mean(y_0,axis=0), y_0)) #max in case there are multiple predicted values
+                error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
                 # print(error_0)
-                error_1 = np.max(self.goodness_test(np.mean(y_1,axis=0), y_1))
+                error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
                 # print(error_1)
                 error = max(error_0, error_1)
+                # print(error)
                 if error < best_error: #better error
-                    best_split = lambda X_i: 0 if X_i[j] < feature else 1
+                    # best_split = lambda X_i: 0 if X_i[j] < feature else 1
+                    best_column_to_split = column
+                    best_feature_value_to_split_on = feature_value
                     best_error = error
                 # best_split = test
                 # def test(X_i):  #TODO: make this propa
@@ -138,8 +157,13 @@ class DT_Regressor():
                     # if X_i[j] < feature:
                         # return 0
                     # else:
-                        # return 
-        return best_split
+                        # return
+        # print("best error: %f" % best_error)
+        # print("best column to split: %d" % best_column_to_split)
+        # print("best feature value to split on: %f" % best_feature_value_to_split_on)
+        # print(best_error)
+        return lambda X_i: 0 if X_i[best_column_to_split] < best_feature_value_to_split_on else 1
+        # return best_split
 
         
     
@@ -147,18 +171,31 @@ class DT_Regressor():
         predicts and returns y for the given X
     """
     def predict(self, X):
-        y = [] 
+        y = []
+        stack_method = None #for selecting how the single predictions should be put together
+        axis = -1
+        
         if self.tree_root == None:
             raise AttributeError("Tree has not been trained. No root set")
         else:
             for X_i in X:
                 prediction = self.tree_root.get_prediction(X_i)
-                if prediction.shape == (1,):
-                    # print(prediction.shape)
-                    prediction = prediction[0] #workaround to negative values being in arrays until I fix it
+                
+                if stack_method == None: #set stack_method once
+                    if prediction.shape == (1,): #return value should be of shape (m,)
+                        stack_method = np.hstack
+                    else: #return value should be of shape (m, n)
+                        stack_method = np.vstack
+                # if axis < 0:
+                    # if prediction.shape == (1,): #return value should be of shape (m,)
+                        # axis = 1
+                    # else: #return value should be of shape (m, n)
+                        # axis = 0
+                        
                 y.append(prediction)
                 # print(prediction)
-            return np.array(y)
+            return stack_method(y)
+            # return np.stack(y, axis=axis)
     
     """
     calculates the mean squared error for two vectors (or two matrices for each of the respective columns)
@@ -226,7 +263,7 @@ def main():
                   [0.6,0.7]])
     # reg = DT_Regressor(max_depth=0)
     # reg = DT_Regressor(max_depth=1)
-    reg = DT_Regressor()
+    reg = DTRegressor()
     reg.fit(X, y)
     print(reg.predict(X))
     print(reg.predict(X).shape)
