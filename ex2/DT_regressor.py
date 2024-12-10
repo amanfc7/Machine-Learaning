@@ -101,11 +101,19 @@ class DTRegressor():
         best_feature_value_to_split_on = 0
         
         # print("------ calculating new split ------")
+        #create a random permutation for the feature 
+
+        indices = [i for i in range(X.shape[1])]
+        self.rd.shuffle(indices)
+
         
         #initial brute force attempt = 'best' strategy
         if self.splitter == 'best': #TODO might randomly shuffle the features here too before computing split
-            for row, sample in enumerate(X):
-                for column, feature_value in enumerate(sample):
+            for column in indices:
+                features_of_column = X[:, column]
+                for feature_value in features_of_column:
+            # for row, sample in enumerate(X):
+                # for column, feature_value in enumerate(sample):
                     # print("sample, feature:")
                     # print(sample)
                     # print(feature)
@@ -142,7 +150,49 @@ class DTRegressor():
                         best_feature_value_to_split_on = feature_value
                         best_error = error
         elif self.splitter == "random":
-            raise ValueError("not implemented yet") #TODO
+            if self.max_features != None: #we only look at the first max_features features
+                indices = indices[:self.max_features]
+            
+            for column in indices:
+                features_of_column = X[:, column]
+                for feature_value in features_of_column:
+            # for row, sample in enumerate(X):
+                # for column, feature_value in enumerate(sample):
+                    # print("sample, feature:")
+                    # print(sample)
+                    # print(feature)
+                    # print("comparing colum %d" % j)
+                    #split on feature
+                    mask_0 = X[:, column] < feature_value
+                    X_0 = X[mask_0]
+                    y_0 = y[mask_0]
+                    
+                    # mask_1 = X[:, column] >= feature_value
+                    mask_1 = np.invert(mask_0)
+                    X_1 = X[mask_1]
+                    y_1 = y[mask_1]
+                    
+                    # print("X_0, X_1")
+                    # print(X_0)
+                    # print(X_1)
+                    if X_0.shape[0] == 0 or X_1.shape[0] == 0:
+                        #we have hit an outermost value, a split is empty so not good
+                        # print("split no good")
+                        continue
+                        
+    
+                    cur_y_predict_0 = np.mean(y_0,axis=0)
+                    cur_y_predict_1 = np.mean(y_1,axis=0)
+                    
+                    error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
+                    error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
+                    error = max(error_0, error_1)
+                    # print(error)
+                    if error < best_error: #better error
+                        # best_split = lambda X_i: 0 if X_i[j] < feature else 1
+                        best_column_to_split = column
+                        best_feature_value_to_split_on = feature_value
+                        best_error = error
             
         else:
             raise ValueError("invalid splitter set")
