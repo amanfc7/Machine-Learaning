@@ -118,7 +118,8 @@ class DTRegressor():
                 X_0 = X[mask_0]
                 y_0 = y[mask_0]
                 
-                mask_1 = X[:, column] >= feature_value
+                # mask_1 = X[:, column] >= feature_value
+                mask_1 = np.invert(mask_0)
                 X_1 = X[mask_1]
                 y_1 = y[mask_1]
                 
@@ -130,15 +131,12 @@ class DTRegressor():
                     # print("split no good")
                     continue
                     
-                # print(X_0)
-                # print(X_1)
+
                 cur_y_predict_0 = np.mean(y_0,axis=0)
                 cur_y_predict_1 = np.mean(y_1,axis=0)
                 
                 error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
-                # print(error_0)
                 error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
-                # print(error_1)
                 error = max(error_0, error_1)
                 # print(error)
                 if error < best_error: #better error
@@ -146,18 +144,7 @@ class DTRegressor():
                     best_column_to_split = column
                     best_feature_value_to_split_on = feature_value
                     best_error = error
-                # best_split = test
-                # def test(X_i):  #TODO: make this propa
-                    # # maybe compute avg of y
-                    # # for i in range(1, self.split_on_decision):
-                        # # if X_i[0] > i:
-                            # # return i
-                        # # else:
-                            # # return 0
-                    # if X_i[j] < feature:
-                        # return 0
-                    # else:
-                        # return
+
         # print("best error: %f" % best_error)
         # print("best column to split: %d" % best_column_to_split)
         # print("best feature value to split on: %f" % best_feature_value_to_split_on)
