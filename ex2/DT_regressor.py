@@ -11,21 +11,24 @@ class DTRegressor():
     """
     Parameters:
         max_depth: max depth of decision tree. 0 for Zero Rule, 1 for One Rule, -1 for unlimited
-        ---split_on_decision: how many branches per inner node, min 2 (not used, infeasible)
         compute_split_alg: the algorithm used to compute the best split of the data
             should be one out of "error_rate", "information_gain", "gini_index", "variance_reduction", ???
             TODO: actually, might neeed to different, e.g. means squared error (MSE), mean absolute error (MAE)
         epsilon: stop early if standard deviation of prediction is smaller than this
         TODO: something about (pre-)pruning
         random_state: parameter for reproducability for eventual random operations; default=None
+        splitter: 'best' to choose the best from all possible splits at each step, 
+            'random' to choose the best split from max_features random features; default: 'best'
+        max_features: upper limit to how many features are selected when computing the split. 
+            Only has an effect if splitter='random' and max_features < sample features; default: None
     """
     def __init__(self, max_depth=-1, 
-        # split_on_decision=2,
-        compute_split_alg="mse",
-        epsilon=0.001,
-        random_state=None):
+            compute_split_alg="mse",
+            epsilon=0.001,
+            random_state=None,
+            splitter='best',
+            max_features=None):
         self.max_depth = max_depth
-        # self.split_on_decision = split_on_decision
         self.tree_root = None
         self.epsilon = epsilon
         
@@ -34,15 +37,16 @@ class DTRegressor():
         else:
             self.rd = random.Random(random_state)
             
-        #error measurement for 
+        #error measurement used
         if compute_split_alg == "mse":
             self.goodness_test = self._mse
         elif compute_split_alg == "mae":
             self.goodness_test = self._mae
         else:
-            raise AttributeError("invalid goodness commputation method selected")
+            raise ValueError("invalid goodness commputation method selected")
     
-    
+        self.splitter = splitter
+        self.max_features = max_features
 
     
     """
@@ -55,15 +59,7 @@ class DTRegressor():
             self.tree_root = self.LeafNode(np.mean(y,axis=0))
         else:
             self.tree_root = self._fit(X, y, 0)
-            # i = self.max_depth
-            # while i != 0:
-                # i -= 1
-                ## add some inner nodes
-                # #probably want to do this recursively, actually, would not need below then
-            
-                # if i == 0 or False: #TODO: False should be replaced with only one value remaining in box
-                    ## add leaf nodes
-                    # pass
+
         print("*"*10+"Training finished"+"*"*10)
                     
     """
@@ -106,44 +102,50 @@ class DTRegressor():
         
         # print("------ calculating new split ------")
         
-        #initial brute force attempt
-        for row, sample in enumerate(X):
-            for column, feature_value in enumerate(sample):
-                # print("sample, feature:")
-                # print(sample)
-                # print(feature)
-                # print("comparing colum %d" % j)
-                #split on feature
-                mask_0 = X[:, column] < feature_value
-                X_0 = X[mask_0]
-                y_0 = y[mask_0]
-                
-                # mask_1 = X[:, column] >= feature_value
-                mask_1 = np.invert(mask_0)
-                X_1 = X[mask_1]
-                y_1 = y[mask_1]
-                
-                # print("X_0, X_1")
-                # print(X_0)
-                # print(X_1)
-                if X_0.shape[0] == 0 or X_1.shape[0] == 0:
-                    #we have hit an outermost value, a split is empty so not good
-                    # print("split no good")
-                    continue
+        #initial brute force attempt = 'best' strategy
+        if self.splitter == 'best': #TODO might randomly shuffle the features here too before computing split
+            for row, sample in enumerate(X):
+                for column, feature_value in enumerate(sample):
+                    # print("sample, feature:")
+                    # print(sample)
+                    # print(feature)
+                    # print("comparing colum %d" % j)
+                    #split on feature
+                    mask_0 = X[:, column] < feature_value
+                    X_0 = X[mask_0]
+                    y_0 = y[mask_0]
                     
-
-                cur_y_predict_0 = np.mean(y_0,axis=0)
-                cur_y_predict_1 = np.mean(y_1,axis=0)
-                
-                error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
-                error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
-                error = max(error_0, error_1)
-                # print(error)
-                if error < best_error: #better error
-                    # best_split = lambda X_i: 0 if X_i[j] < feature else 1
-                    best_column_to_split = column
-                    best_feature_value_to_split_on = feature_value
-                    best_error = error
+                    # mask_1 = X[:, column] >= feature_value
+                    mask_1 = np.invert(mask_0)
+                    X_1 = X[mask_1]
+                    y_1 = y[mask_1]
+                    
+                    # print("X_0, X_1")
+                    # print(X_0)
+                    # print(X_1)
+                    if X_0.shape[0] == 0 or X_1.shape[0] == 0:
+                        #we have hit an outermost value, a split is empty so not good
+                        # print("split no good")
+                        continue
+                        
+    
+                    cur_y_predict_0 = np.mean(y_0,axis=0)
+                    cur_y_predict_1 = np.mean(y_1,axis=0)
+                    
+                    error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
+                    error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
+                    error = max(error_0, error_1)
+                    # print(error)
+                    if error < best_error: #better error
+                        # best_split = lambda X_i: 0 if X_i[j] < feature else 1
+                        best_column_to_split = column
+                        best_feature_value_to_split_on = feature_value
+                        best_error = error
+        elif self.splitter == "random":
+            raise ValueError("not implemented yet") #TODO
+            
+        else:
+            raise ValueError("invalid splitter set")
 
         # print("best error: %f" % best_error)
         # print("best column to split: %d" % best_column_to_split)
@@ -158,13 +160,14 @@ class DTRegressor():
         predicts and returns y for the given X
     """
     def predict(self, X):
-        y = []
-        stack_method = None #for selecting how the single predictions should be put together
-        axis = -1
         
         if self.tree_root == None:
             raise AttributeError("Tree has not been trained. No root set")
         else:
+            y = []
+            stack_method = None #for selecting how the single predictions should be put together
+            # axis = -1
+            
             for X_i in X:
                 prediction = self.tree_root.get_prediction(X_i)
                 
