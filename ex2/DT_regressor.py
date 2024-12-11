@@ -152,14 +152,11 @@ class DTRegressor():
                         best_error = error
         elif self.splitter == "random":
             indices = self._select_indices(self.max_features, indices) #we might want to look at only the first n features based on max_features
-            # if self.max_features != None: #we only look at the first max_features features
-            #     indices = indices[:self.max_features]
+
             
             for column in indices:
                 features_of_column = X[:, column]
                 for feature_value in features_of_column:
-            # for row, sample in enumerate(X):
-                # for column, feature_value in enumerate(sample):
                     # print("sample, feature:")
                     # print(sample)
                     # print(feature)
@@ -282,11 +279,6 @@ class DTRegressor():
         def get_prediction(self, X_i):
             pass
         
-        # def add_child_node(self, node):
-        #     #prbly add node at index i in self.children, then increase local i by one, raise error if i >= num_children instead
-        #     # could also try assignment directly and catch TypeError (Child node) or IndexError (Full inner node)
-        #     #might instead want to add all children at once
-        #     pass
         
     class InnerNode(TreeNode):
         
@@ -320,6 +312,7 @@ class DTRegressor():
 
 
 def main():
+    #for some basic sanity testing
     X = np.array([[1,2, 5], [3, 4,8]])
     # y = np.array([0.5,0.6])
     # y = np.array([[0.5],[0.6]])

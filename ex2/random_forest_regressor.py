@@ -57,10 +57,10 @@ class RandomForestRegressor():
             # select a number of samples (bootstrapping, selection with replacement) for each data set (TODO: how many - fixed/random?)
             # we want to select indices from range(num_samples), then add tuples (X[these_indices], y[these_indices])    
             self.rd.shuffle(indices)
-            selected_indices = self.select_indices(self.max_samples, indices)
-            
-            data_sets.append((X[indices[selected_indices]], 
-                              y[indices[selected_indices]]))
+            selected_indices = self._select_indices(self.max_samples_in_tree, indices)
+
+            data_sets.append((X[selected_indices], 
+                              y[selected_indices]))
         # 2. buld multiple classifiers
         self.trees = []
         for i, data_set in enumerate(data_sets):
@@ -68,7 +68,7 @@ class RandomForestRegressor():
                 max_depth=self.max_depth,
                 random_state=None if self.random_state == None else self.random_state+i,
                 splitter='random', 
-                compute_split_alg=self.citerion,
+                compute_split_alg=self.criterion,
                 max_features=self.max_features
                 )
             clf.fit(data_set[0], data_set[1])
@@ -112,7 +112,18 @@ class RandomForestRegressor():
         
 
 def main():
-    pass
+    #for some basic sanity testing
+    X = np.array([[1,2, 5], [3, 4,8]])
+    # y = np.array([0.5,0.6])
+    # y = np.array([[0.5],[0.6]])
+    y = np.array([[0.5,0.6], 
+                  [0.6,0.7]])
+    # reg = DT_Regressor(max_depth=0)
+    # reg = DT_Regressor(max_depth=1)
+    reg = RandomForestRegressor()
+    reg.fit(X, y)
+    print(reg.predict(X))
+    print(reg.predict(X).shape)
 
 
 
