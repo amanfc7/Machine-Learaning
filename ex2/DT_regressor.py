@@ -22,12 +22,13 @@ class DTRegressor():
         max_features: upper limit to how many features are selected when computing the split. 
             Only has an effect if splitter='random' and max_features < sample features; default: None
     """
-    def __init__(self, max_depth=-1, 
-            compute_split_alg="mse",
-            epsilon=0.001,
-            random_state=None,
-            splitter='best',
-            max_features=None):
+    def __init__(self, 
+                 max_depth=-1, 
+                 compute_split_alg="mse",
+                 epsilon=0.001,
+                 random_state=None,
+                 splitter='best',
+                 max_features=None):
         self.max_depth = max_depth
         self.tree_root = None
         self.epsilon = epsilon
@@ -150,8 +151,9 @@ class DTRegressor():
                         best_feature_value_to_split_on = feature_value
                         best_error = error
         elif self.splitter == "random":
-            if self.max_features != None: #we only look at the first max_features features
-                indices = indices[:self.max_features]
+            indices = self._select_indices(self.max_features, indices) #we might want to look at only the first n features based on max_features
+            # if self.max_features != None: #we only look at the first max_features features
+            #     indices = indices[:self.max_features]
             
             for column in indices:
                 features_of_column = X[:, column]
@@ -248,6 +250,28 @@ class DTRegressor():
     """
     def _mae(self, prediction_matrix, y):
         return (np.abs(prediction_matrix - y)).mean(axis=0)
+    
+    
+    """
+    a little helper method to only return the first n indices
+    where n is determined in some way by num_to_select
+    """
+    def _select_indices(self, num_to_select, indices):
+
+        if num_to_select == None:
+            selected_indices = indices
+        elif isinstance(num_to_select, float):
+            max_index = int(num_to_select * len(indices))
+            selected_indices = indices[:max_index]
+        elif num_to_select == 'sqrt':
+            max_index = int(np.sqrt(len(indices)))
+            selected_indices = indices[:max_index]
+        elif num_to_select == 'log2':
+            max_index = int(np.log2(len(indices)))
+            selected_indices = indices[:max_index]
+        else:
+            selected_indices = indices[:num_to_select]
+        return selected_indices
                 
     
     class TreeNode():

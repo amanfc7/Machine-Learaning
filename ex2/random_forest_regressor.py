@@ -14,7 +14,14 @@ class RandomForestRegressor():
     """
         use_skl_tree: should the random forest be built from trees from sklearn? For testing/comparsion purposes, default: False
     """
-    def __init__(self, use_skl_tree=False, num_trees=100, max_depth=-1, random_state=None, criterion='mse'):
+    def __init__(self, use_skl_tree=False,
+                 num_trees=100, 
+                 max_depth=None, 
+                 random_state=None, 
+                 criterion='squared_error',
+                 max_samples=None,
+                 max_features=1.0,
+                 bootstrap=True):
         if not use_skl_tree:
             self.TreeClass = DTRegressor
         else:
@@ -34,24 +41,35 @@ class RandomForestRegressor():
             self.rd = random.Random(random_state)
             
         self.num_trees = num_trees
-        self.max_depth = max_depth
+        self.max_depth = -1 if max_depth == None else max_depth
         self.trees = []
+        
+        self.max_samples_in_tree = max_samples
+        self.max_features = max_features
+        
+        self.bootstrap = bootstrap #TODO: make this do something
             
     def fit(self, X, y):
         # 1. create multiple data sets
         data_sets = []
+        indices = [i for i in range(X.shape[0])]
         for i in range(self.num_trees):
             # select a number of samples (bootstrapping, selection with replacement) for each data set (TODO: how many - fixed/random?)
-            # we want to select indices from range(num_samples), then add tuples (X[these_indices], y[these_indices])
-            pass
+            # we want to select indices from range(num_samples), then add tuples (X[these_indices], y[these_indices])    
+            self.rd.shuffle(indices)
+            selected_indices = self.select_indices(self.max_samples, indices)
+            
+            data_sets.append((X[indices[selected_indices]], 
+                              y[indices[selected_indices]]))
         # 2. buld multiple classifiers
         self.trees = []
         for i, data_set in enumerate(data_sets):
             clf = self.TreeClass(
                 max_depth=self.max_depth,
                 random_state=None if self.random_state == None else self.random_state+i,
-                # splitter='random', #TODO: uncomment this
-                compute_split_alg=self.citerion
+                splitter='random', 
+                compute_split_alg=self.citerion,
+                max_features=self.max_features
                 )
             clf.fit(data_set[0], data_set[1])
             self.trees.append(clf)
@@ -67,6 +85,27 @@ class RandomForestRegressor():
             prediction = np.mean(predictions, axis=0) #simple mean over the predicted results
             # prediction = np.median(predictions, axis=0) #simple median over the predicted results, might allow seleting this
             return prediction
+        
+    """
+    a little helper method to only return the first n indices
+    where n is determined in some way by num_to_select
+    """
+    def _select_indices(self, num_to_select, indices):
+
+        if num_to_select == None:
+            selected_indices = indices
+        elif isinstance(num_to_select, float):
+            max_index = int(num_to_select * len(indices))
+            selected_indices = indices[:max_index]
+        elif num_to_select == 'sqrt':
+            max_index = int(np.sqrt(len(indices)))
+            selected_indices = indices[:max_index]
+        elif num_to_select == 'log2':
+            max_index = int(np.log2(len(indices)))
+            selected_indices = indices[:max_index]
+        else:
+            selected_indices = indices[:num_to_select]
+        return selected_indices
         
         
             
