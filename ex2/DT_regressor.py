@@ -53,8 +53,8 @@ class DTRegressor():
         self.max_features = max_features
         
         self.min_samples_leaf = min_samples_leaf
-        self.min_samples_split = min_samples_split
-        self.max_leaf_nodes = max_leaf_nodes
+        self.min_samples_split = min_samples_split #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
+        self.max_leaf_nodes = max_leaf_nodes #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
 
     
     """
@@ -80,6 +80,9 @@ class DTRegressor():
         if X.shape[0] == 1:
             #only one sample (row) left, we want to predict its y-value(s) 
             return self.LeafNode(y)
+        elif X.shape[0] < 2*self._compute_min_samples_number(self.min_samples_leaf, X.shape[0]):
+            #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+            return self.LeafNode(np.mean(y,axis=0))
         elif depth == self.max_depth:
             #max depth reached, we want to predict the mean(s) of its y-values 
             # print("max depth reached")
@@ -98,7 +101,6 @@ class DTRegressor():
             # print(X.ndim)
             # print(X.shape)
             # print(masks)
-            # print(i)
             children = [self._fit(X[mask,:], y[mask], depth+1) for mask in masks] #split X, y by selecting just certain parts
             return self.InnerNode(test, children)
         
@@ -120,25 +122,17 @@ class DTRegressor():
             for column in indices:
                 features_of_column = X[:, column]
                 for feature_value in features_of_column:
-            # for row, sample in enumerate(X):
-                # for column, feature_value in enumerate(sample):
-                    # print("sample, feature:")
-                    # print(sample)
-                    # print(feature)
-                    # print("comparing colum %d" % j)
+
                     #split on feature
                     mask_0 = X[:, column] < feature_value
                     X_0 = X[mask_0]
                     y_0 = y[mask_0]
-                    
-                    # mask_1 = X[:, column] >= feature_value
+
                     mask_1 = np.invert(mask_0)
                     X_1 = X[mask_1]
                     y_1 = y[mask_1]
                     
-                    # print("X_0, X_1")
-                    # print(X_0)
-                    # print(X_1)
+
                     if X_0.shape[0] == 0 or X_1.shape[0] == 0:
                         #we have hit an outermost value, a split is empty so not good
                         # print("split no good")
@@ -164,23 +158,15 @@ class DTRegressor():
             for column in indices:
                 features_of_column = X[:, column]
                 for feature_value in features_of_column:
-                    # print("sample, feature:")
-                    # print(sample)
-                    # print(feature)
-                    # print("comparing colum %d" % j)
                     #split on feature
                     mask_0 = X[:, column] < feature_value
                     X_0 = X[mask_0]
                     y_0 = y[mask_0]
                     
-                    # mask_1 = X[:, column] >= feature_value
                     mask_1 = np.invert(mask_0)
                     X_1 = X[mask_1]
                     y_1 = y[mask_1]
                     
-                    # print("X_0, X_1")
-                    # print(X_0)
-                    # print(X_1)
                     if X_0.shape[0] == 0 or X_1.shape[0] == 0:
                         #we have hit an outermost value, a split is empty so not good
                         # print("split no good")
@@ -276,6 +262,19 @@ class DTRegressor():
         else:
             selected_indices = indices[:num_to_select]
         return selected_indices
+    
+        
+    """
+        a little helper method to  convert the min_samples int or float into a proper int
+    """
+    def _compute_min_samples_number(self, min_samples, num_samples):
+        if isinstance(min_samples, float):
+            return np.ceil(min_samples * num_samples)
+        elif isinstance(min_samples, int):
+            return min_samples
+        else:
+            raise ValueError("Invalid value for min_samples_*")
+        
                 
     
     class TreeNode():

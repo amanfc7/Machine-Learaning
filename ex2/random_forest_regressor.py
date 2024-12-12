@@ -64,7 +64,7 @@ class RandomForestRegressor():
         self.bootstrap = bootstrap #TODO: make this do something
         self.min_samples_leaf = min_samples_leaf
         self.min_samples_split = min_samples_split
-        self.max_leaf_nodes = max_leaf_nodes
+        self.max_leaf_nodes = max_leaf_nodes 
         
         self.vote = vote
             
@@ -132,7 +132,7 @@ class RandomForestRegressor():
         else:
             selected_indices = indices[:num_to_select]
         return selected_indices
-        
+
         
             
         
