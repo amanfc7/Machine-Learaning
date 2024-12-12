@@ -42,12 +42,13 @@ class RandomForestRegressor():
         else:
             self.TreeClass = DecisionTreeRegressor
             
-        if criterion == 'squared_error':
-            self.criterion = 'mse'
-        elif criterion == 'absolute_error':
-            self.criterion = 'mae'
-        else:
-            raise ValueError("criterion not implemented")
+        # if criterion == 'squared_error':
+        #     self.criterion = 'mse'
+        # elif criterion == 'absolute_error':
+        #     self.criterion = 'mae'
+        # else:
+        #     raise ValueError("criterion not implemented")
+        self.criterion = criterion
         
         self.random_state = random_state
         if random_state == None:
@@ -56,7 +57,7 @@ class RandomForestRegressor():
             self.rd = random.Random(random_state)
             
         self.num_trees = n_estimators
-        self.max_depth = -1 if max_depth == None else max_depth
+        self.max_depth = max_depth
         self.trees = []
         
         self.max_samples_in_tree = max_samples
@@ -95,7 +96,8 @@ class RandomForestRegressor():
                 max_depth=self.max_depth,
                 random_state=None if self.random_state == None else self.random_state+i,
                 splitter='random', 
-                compute_split_alg=self.criterion,
+                # compute_split_alg=self.criterion,
+                criterion=self.criterion,
                 max_features=self.max_features,
                 min_samples_leaf=self.min_samples_leaf,
                 min_samples_split=self.min_samples_split,

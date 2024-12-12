@@ -24,7 +24,8 @@ class DTRegressor():
     """
     def __init__(self, 
                  max_depth=-1, 
-                 compute_split_alg="mse",
+                 # compute_split_alg="mse",
+                 criterion="squared_error",
                  epsilon=0.001,
                  random_state=None,
                  splitter='best',
@@ -32,7 +33,8 @@ class DTRegressor():
                  min_samples_split=2, 
                  min_samples_leaf=1,
                  max_leaf_nodes=None):
-        self.max_depth = max_depth
+        # self.max_depth = max_depth
+        self.max_depth = -1 if max_depth == None else max_depth
         self.tree_root = None
         self.epsilon = epsilon
         
@@ -42,9 +44,11 @@ class DTRegressor():
             self.rd = random.Random(random_state)
             
         #error measurement used
-        if compute_split_alg == "mse":
+        # if compute_split_alg == "mse":
+        if criterion == "squared_error":
             self.goodness_test = self._mse
-        elif compute_split_alg == "mae":
+        # elif compute_split_alg == "mae":
+        elif criterion == "absolute_error":
             self.goodness_test = self._mae
         else:
             raise ValueError("invalid goodness commputation method selected")

@@ -4,6 +4,9 @@
 
 from random_forest_regressor import RandomForestRegressor
 
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
+
 import pandas as pd
 
 
@@ -15,13 +18,20 @@ def train_model():
     # X = X.where(X!='unknown', other=np.nan)
     y = ds['percent_pell_grant']
     
-    print(X)
-    print(y)
+    # print(X)
+    # print(y)
     
-    clf = RandomForestRegressor()
-    clf.fit(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=0)
     
-    #some evaluation
+    clf = RandomForestRegressor(use_skl_tree=True)
+    clf.fit(X_train, y_train)
+    
+    y_prediction = clf.predict(X_test)
+    
+    #some quick evaluation
+    print(r2_score(y_test, y_prediction))
+    
 
 def main():
     train_model()
