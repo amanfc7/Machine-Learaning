@@ -10,18 +10,32 @@ from sklearn.tree import DecisionTreeRegressor
 
 class RandomForestRegressor():
     
-    
     """
         use_skl_tree: should the random forest be built from trees from sklearn? For testing/comparsion purposes, default: False
+        n_estimators:
+        max_depth:
+        random_state:
+        criterion:
+        max_samples:
+        max_features:
+        bootstrap:
+        min_samples_split:
+        min_samples_leaf:
+        max_leaf_nodes:
+        
     """
     def __init__(self, use_skl_tree=False,
-                 num_trees=100, 
+                 n_estimators=100, 
                  max_depth=None, 
                  random_state=None, 
                  criterion='squared_error',
                  max_samples=None,
                  max_features=1.0,
-                 bootstrap=True):
+                 bootstrap=True,
+                 min_samples_split=2, 
+                 min_samples_leaf=1,
+                 max_leaf_nodes=None,
+                 vote='mean'):
         if not use_skl_tree:
             self.TreeClass = DTRegressor
         else:
@@ -40,7 +54,7 @@ class RandomForestRegressor():
         else:
             self.rd = random.Random(random_state)
             
-        self.num_trees = num_trees
+        self.num_trees = n_estimators
         self.max_depth = -1 if max_depth == None else max_depth
         self.trees = []
         
@@ -48,6 +62,11 @@ class RandomForestRegressor():
         self.max_features = max_features
         
         self.bootstrap = bootstrap #TODO: make this do something
+        self.min_samples_leaf = min_samples_leaf
+        self.min_samples_split = min_samples_split
+        self.max_leaf_nodes = max_leaf_nodes
+        
+        self.vote = vote
             
     def fit(self, X, y):
         # 1. create multiple data sets
@@ -69,7 +88,10 @@ class RandomForestRegressor():
                 random_state=None if self.random_state == None else self.random_state+i,
                 splitter='random', 
                 compute_split_alg=self.criterion,
-                max_features=self.max_features
+                max_features=self.max_features,
+                min_samples_leaf=self.min_samples_leaf,
+                min_samples_split=self.min_samples_split,
+                max_leaf_nodes=self.max_leaf_nodes
                 )
             clf.fit(data_set[0], data_set[1])
             self.trees.append(clf)
@@ -82,8 +104,12 @@ class RandomForestRegressor():
         else:
             predictions = np.array([tree.predict(X) for tree in self.trees])
             # combine predictions 
-            prediction = np.mean(predictions, axis=0) #simple mean over the predicted results
-            # prediction = np.median(predictions, axis=0) #simple median over the predicted results, might allow seleting this
+            if self.vote == 'mean':
+                prediction = np.mean(predictions, axis=0) #simple mean over the predicted results
+            elif self.vote == 'median':
+                prediction = np.median(predictions, axis=0) #simple median over the predicted results, might allow seleting this
+            else:
+                raise ValueError("no valid voting method specified")
             return prediction
         
     """
@@ -118,8 +144,6 @@ def main():
     # y = np.array([[0.5],[0.6]])
     y = np.array([[0.5,0.6], 
                   [0.6,0.7]])
-    # reg = DT_Regressor(max_depth=0)
-    # reg = DT_Regressor(max_depth=1)
     reg = RandomForestRegressor()
     reg.fit(X, y)
     print(reg.predict(X))

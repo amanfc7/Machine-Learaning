@@ -28,7 +28,10 @@ class DTRegressor():
                  epsilon=0.001,
                  random_state=None,
                  splitter='best',
-                 max_features=None):
+                 max_features=None,
+                 min_samples_split=2, 
+                 min_samples_leaf=1,
+                 max_leaf_nodes=None):
         self.max_depth = max_depth
         self.tree_root = None
         self.epsilon = epsilon
@@ -48,6 +51,10 @@ class DTRegressor():
     
         self.splitter = splitter
         self.max_features = max_features
+        
+        self.min_samples_leaf = min_samples_leaf
+        self.min_samples_split = min_samples_split
+        self.max_leaf_nodes = max_leaf_nodes
 
     
     """
@@ -109,7 +116,7 @@ class DTRegressor():
 
         
         #initial brute force attempt = 'best' strategy
-        if self.splitter == 'best': #TODO might randomly shuffle the features here too before computing split
+        if self.splitter == 'best':
             for column in indices:
                 features_of_column = X[:, column]
                 for feature_value in features_of_column:
