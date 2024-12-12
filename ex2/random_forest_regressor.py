@@ -4,6 +4,7 @@
 #vgl 06
 import random
 import numpy as np
+# import pandas as pd
 
 from DT_regressor import DTRegressor
 from sklearn.tree import DecisionTreeRegressor
@@ -69,6 +70,13 @@ class RandomForestRegressor():
         self.vote = vote
             
     def fit(self, X, y):
+        try: #we don't need pandas dataframes, we want np arrays
+            X = X.to_numpy()
+            y = y.to_numpy()
+        except AttributeError:
+            pass
+        
+        
         # 1. create multiple data sets
         data_sets = []
         indices = [i for i in range(X.shape[0])]

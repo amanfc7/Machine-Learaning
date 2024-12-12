@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+# import pandas as pd
 import random
 
 #vgl. 03, 04, 06, 07
@@ -12,10 +13,9 @@ class DTRegressor():
     Parameters:
         max_depth: max depth of decision tree. 0 for Zero Rule, 1 for One Rule, -1 for unlimited
         compute_split_alg: the algorithm used to compute the best split of the data
-            should be one out of "error_rate", "information_gain", "gini_index", "variance_reduction", ???
-            TODO: actually, might neeed to different, e.g. means squared error (MSE), mean absolute error (MAE)
+            should be one out of means squared error ('mse'), mean absolute error ('mae')
         epsilon: stop early if standard deviation of prediction is smaller than this
-        TODO: something about (pre-)pruning
+        TODO: something about (pre-)pruning, maybe
         random_state: parameter for reproducability for eventual random operations; default=None
         splitter: 'best' to choose the best from all possible splits at each step, 
             'random' to choose the best split from max_features random features; default: 'best'
@@ -62,6 +62,12 @@ class DTRegressor():
         X should be a numpy array of shape(number_of_samples, number_of_features)
     """
     def fit(self, X, y):
+        try: #we don't need pandas dataframes, we want np arrays
+            X = X.to_numpy()
+            y = y.to_numpy()
+        except AttributeError:
+            pass
+        
         if self.max_depth == 0:
             #Zero Rule
             self.tree_root = self.LeafNode(np.mean(y,axis=0))
@@ -76,7 +82,6 @@ class DTRegressor():
             (more than one target column)
     """
     def _fit(self, X, y, depth):
-        # if X.ndim == 1: 
         if X.shape[0] == 1:
             #only one sample (row) left, we want to predict its y-value(s) 
             return self.LeafNode(y)

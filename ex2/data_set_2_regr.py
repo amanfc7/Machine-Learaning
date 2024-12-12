@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-from random_forest_regressor import RandomForestCongressor
+from random_forest_regressor import RandomForestRegressor
 
 def main():
     pass
