@@ -31,10 +31,10 @@ def train_model():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=0)
     
-    # t0= time.time()
-    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
-    # clf.fit(X_train, y_train)
-    # print(time.time() - t0)
+    t0= time.time()
+    clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
+    clf.fit(X_train, y_train)
+    print(time.time() - t0)
     
     # y_prediction = clf.predict(X_test)
     
@@ -46,10 +46,10 @@ def train_model():
     # print(clf_t_skl.get_n_leaves())
     # print(clf_t_skl.get_depth())
     
-    t0= time.time()
-    clf = DTRegressor(splitter='random')
-    clf.fit(X_train, y_train) 
-    print(time.time() - t0)
+    # t0= time.time()
+    # clf = DTRegressor(splitter='random')
+    # clf.fit(X_train, y_train) 
+    # print(time.time() - t0)
     
     
     #some quick evaluation

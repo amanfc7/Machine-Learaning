@@ -79,7 +79,7 @@ class DTRegressor():
             # print("depth reached: %d" % self.depth_reached)
             # print("leaves created: %d" % self.num_leaves)
 
-        print("*"*10+"Training finished"+"*"*10)
+        print("*"*10+" Tree training finished "+"*"*10)
                     
     """
         X should be a numpy array of shape(number_of_samples, number_of_features)

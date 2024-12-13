@@ -117,9 +117,15 @@ class RandomForestRegressor():
         if len(self.trees) == 0:
             raise AttributeError("Forest has not been trained. No trees available")
         else:
-            
-            predictions = [tree.predict(X) for tree in self.trees]
-            print(predictions)
+            predictions = []
+            for tree in self.trees:
+                prediction = tree.predict(X)
+                if prediction.ndim == 2 and prediction.shape[1] == 1: #sometimes predicitions seem to have shape (m,) and sometimes (m,1)
+                    prediction = prediction.flatten()
+                # print(prediction.shape)
+                predictions.append(prediction)
+            # predictions = [tree.predict(X) for tree in self.trees]
+            # print(predictions)
             predictions = np.array(predictions)
             # combine predictions 
             if self.vote == 'mean':
