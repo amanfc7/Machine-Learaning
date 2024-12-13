@@ -109,10 +109,18 @@ class RandomForestRegressor():
         # done only when predicting
         
     def predict(self, X):
+        try: #we don't need pandas dataframes, we want np arrays
+            X = X.to_numpy()
+        except AttributeError:
+            pass
+        
         if len(self.trees) == 0:
             raise AttributeError("Forest has not been trained. No trees available")
         else:
-            predictions = np.array([tree.predict(X) for tree in self.trees])
+            
+            predictions = [tree.predict(X) for tree in self.trees]
+            print(predictions)
+            predictions = np.array(predictions)
             # combine predictions 
             if self.vote == 'mean':
                 prediction = np.mean(predictions, axis=0) #simple mean over the predicted results

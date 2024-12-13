@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import time
 
 from random_forest_regressor import RandomForestRegressor
+from DT_regressor import DTRegressor
+# from DT_regressor_old import DTRegressor
+
+
+from sklearn.tree import DecisionTreeRegressor
+# from sklearn import ensemble
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
@@ -24,13 +31,30 @@ def train_model():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=0)
     
-    clf = RandomForestRegressor(use_skl_tree=True)
-    clf.fit(X_train, y_train)
+    # t0= time.time()
+    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
+    # clf.fit(X_train, y_train)
+    # print(time.time() - t0)
     
-    y_prediction = clf.predict(X_test)
+    # y_prediction = clf.predict(X_test)
+    
+    # t0= time.time()
+    # clf_t_skl = DecisionTreeRegressor(splitter='random')
+    # clf_t_skl.fit(X_train, y_train) 
+    # print(time.time() - t0)
+    # print(clf_t_skl.get_params())
+    # print(clf_t_skl.get_n_leaves())
+    # print(clf_t_skl.get_depth())
+    
+    t0= time.time()
+    clf = DTRegressor(splitter='random')
+    clf.fit(X_train, y_train) 
+    print(time.time() - t0)
+    
     
     #some quick evaluation
-    print(r2_score(y_test, y_prediction))
+    # print(r2_score(y_test, clf_t_skl.predict(X_test)))
+    print(r2_score(y_test, clf.predict(X_test)))
     
 
 def main():

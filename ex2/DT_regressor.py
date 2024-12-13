@@ -23,8 +23,7 @@ class DTRegressor():
             Only has an effect if splitter='random' and max_features < sample features; default: None
     """
     def __init__(self, 
-                 max_depth=-1, 
-                 # compute_split_alg="mse",
+                 max_depth=-1,
                  criterion="squared_error",
                  epsilon=0.001,
                  random_state=None,
@@ -33,7 +32,6 @@ class DTRegressor():
                  min_samples_split=2, 
                  min_samples_leaf=1,
                  max_leaf_nodes=None):
-        # self.max_depth = max_depth
         self.max_depth = -1 if max_depth == None else max_depth
         self.tree_root = None
         self.epsilon = epsilon
@@ -44,12 +42,10 @@ class DTRegressor():
             self.rd = random.Random(random_state)
             
         #error measurement used
-        # if compute_split_alg == "mse":
         if criterion == "squared_error":
-            self.goodness_test = self._mse
-        # elif compute_split_alg == "mae":
+            self.goodness_test = self._variance_reduction
         elif criterion == "absolute_error":
-            self.goodness_test = self._mae
+            self.goodness_test = self._absolute_reduction
         else:
             raise ValueError("invalid goodness commputation method selected")
     
@@ -75,8 +71,13 @@ class DTRegressor():
         if self.max_depth == 0:
             #Zero Rule
             self.tree_root = self.LeafNode(np.mean(y,axis=0))
+            self.depth = 0
+            self.num_leaves = 1
         else:
-            self.tree_root = self._fit(X, y, 0)
+            node, self.depth_reached, self.num_leaves = self._fit_rec(X, y, 0)
+            self.tree_root = node
+            # print("depth reached: %d" % self.depth_reached)
+            # print("leaves created: %d" % self.num_leaves)
 
         print("*"*10+"Training finished"+"*"*10)
                     
@@ -85,132 +86,114 @@ class DTRegressor():
         should be able to correctly learn multiple regression values at the same time 
             (more than one target column)
     """
-    def _fit(self, X, y, depth):
+    def _fit_rec(self, X, y, depth):
+        ret_depth = depth
+        ret_num_leaves = 1
         if X.shape[0] == 1:
             #only one sample (row) left, we want to predict its y-value(s) 
-            return self.LeafNode(y)
+            node = self.LeafNode(y)
         elif X.shape[0] < 2*self._compute_min_samples_number(self.min_samples_leaf, X.shape[0]):
             #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
-            return self.LeafNode(np.mean(y,axis=0))
+            node = self.LeafNode(np.mean(y,axis=0))
         elif depth == self.max_depth:
             #max depth reached, we want to predict the mean(s) of its y-values 
             # print("max depth reached")
-            return self.LeafNode(np.mean(y,axis=0))
+            node = self.LeafNode(np.mean(y,axis=0))
         elif np.max(np.sqrt(self._mse(y.mean(axis=0), y))) < self.epsilon:  
             #standard deviation for (all) predicted values is smaller than our target value, stop early
             #so for all X_is the average of the corresponding y_is is not too far from the individual y_is
-            return self.LeafNode(np.mean(y,axis=0))
+            node = self.LeafNode(np.mean(y,axis=0))
         else:
             # return an inner node with children set by recursive calls to _fit(), with i-1 and split X, y 
             #    --> divide X based on whatever splitting criterion I calculate, then pass only the respective parts of X and the corresponding parts of y to the repective recursive calls
-            test = self._create_split(X, y)
-            # masks = [[test(X_i) == j for X_i in X] for j in range(self.split_on_decision)] #split_on_decision is no longer used, delete this
-            masks = [[test(X_i) == j for X_i in X] for j in range(2)] #TODO: could probably make this more efficient by better utilizing numpy
-            # print(X)
-            # print(X.ndim)
-            # print(X.shape)
-            # print(masks)
-            children = [self._fit(X[mask,:], y[mask], depth+1) for mask in masks] #split X, y by selecting just certain parts
-            return self.InnerNode(test, children)
+            X_0, y_0, X_1, y_1, test = self._create_split(X, y)
+            
+            child_0, depth_0, num_nodes_0 = self._fit_rec(X_0, y_0, depth+1)
+            child_1, depth_1, num_nodes_1 = self._fit_rec(X_1, y_1, depth+1)
+            node = self.InnerNode(test, [child_0, child_1])
+            ret_depth = max(depth_0, depth_1)
+            ret_num_leaves = num_nodes_0 + num_nodes_1
+        
+        return (node, ret_depth, ret_num_leaves)
+    
+    # def _fit(self, X, y, depth_reached):
+    #     pass#put inner nodes to expand next in a queue, based on how much splitting them reduces variance?
         
     def _create_split(self, X, y):
-        # best_split = lambda X_i: 0
-        best_error = float("inf")
-        best_column_to_split = 0
-        best_feature_value_to_split_on = 0
         
-        # print("------ calculating new split ------")
-        #create a random permutation for the feature 
-
+        # print("------ calculating new best split ------")
+        
+        #create a random permutation for the feature indices
         indices = [i for i in range(X.shape[1])]
         self.rd.shuffle(indices)
 
         
         #initial brute force attempt = 'best' strategy
         if self.splitter == 'best':
-            for column in indices:
-                features_of_column = X[:, column]
-                for feature_value in features_of_column:
+            best_column_to_split, best_feature_value_to_split_on  = self._create_candidate_split(X, y, indices)
 
-                    #split on feature
-                    mask_0 = X[:, column] < feature_value
-                    X_0 = X[mask_0]
-                    y_0 = y[mask_0]
-
-                    mask_1 = np.invert(mask_0)
-                    X_1 = X[mask_1]
-                    y_1 = y[mask_1]
-                    
-
-                    if X_0.shape[0] == 0 or X_1.shape[0] == 0:
-                        #we have hit an outermost value, a split is empty so not good
-                        # print("split no good")
-                        continue
-                        
-    
-                    cur_y_predict_0 = np.mean(y_0,axis=0)
-                    cur_y_predict_1 = np.mean(y_1,axis=0)
-                    
-                    error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
-                    error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
-                    error = max(error_0, error_1)
-                    # print(error)
-                    if error < best_error: #better error
-                        # best_split = lambda X_i: 0 if X_i[j] < feature else 1
-                        best_column_to_split = column
-                        best_feature_value_to_split_on = feature_value
-                        best_error = error
+        
+        #we might want to look at only the first n features based on max_features instead
         elif self.splitter == "random":
-            indices = self._select_indices(self.max_features, indices) #we might want to look at only the first n features based on max_features
-
-            
-            for column in indices:
-                features_of_column = X[:, column]
-                for feature_value in features_of_column:
-                    #split on feature
-                    mask_0 = X[:, column] < feature_value
-                    X_0 = X[mask_0]
-                    y_0 = y[mask_0]
-                    
-                    mask_1 = np.invert(mask_0)
-                    X_1 = X[mask_1]
-                    y_1 = y[mask_1]
-                    
-                    if X_0.shape[0] == 0 or X_1.shape[0] == 0:
-                        #we have hit an outermost value, a split is empty so not good
-                        # print("split no good")
-                        continue
-                        
-    
-                    cur_y_predict_0 = np.mean(y_0,axis=0)
-                    cur_y_predict_1 = np.mean(y_1,axis=0)
-                    
-                    error_0 = np.max(self.goodness_test(cur_y_predict_0, y_0)) #max in case there are multiple predicted values
-                    error_1 = np.max(self.goodness_test(cur_y_predict_1, y_1))
-                    error = max(error_0, error_1)
-                    # print(error)
-                    if error < best_error: #better error
-                        # best_split = lambda X_i: 0 if X_i[j] < feature else 1
-                        best_column_to_split = column
-                        best_feature_value_to_split_on = feature_value
-                        best_error = error
+            indices = self._select_indices(self.max_features, indices)
+            best_column_to_split, best_feature_value_to_split_on  = self._create_candidate_split(X, y, indices)
             
         else:
             raise ValueError("invalid splitter set")
 
-        # print("best error: %f" % best_error)
-        # print("best column to split: %d" % best_column_to_split)
-        # print("best feature value to split on: %f" % best_feature_value_to_split_on)
-        # print(best_error)
-        return lambda X_i: 0 if X_i[best_column_to_split] < best_feature_value_to_split_on else 1
-        # return best_split
-
+    
+        mask_0 = X[:, best_column_to_split] < best_feature_value_to_split_on
+        X_0 = X[mask_0]
+        y_0 = y[mask_0]
         
+        mask_1 = np.invert(mask_0)
+        X_1 = X[mask_1]
+        y_1 = y[mask_1]
+        test = lambda X_i: 0 if X_i[best_column_to_split] < best_feature_value_to_split_on else 1
+        return (X_0, y_0, X_1, y_1, test)
+
+
+    def _create_candidate_split(self, X, y, indices):
+        best_var_red = -float("inf")
+        best_column_to_split = 0
+        best_feature_value_to_split_on = 0
+        
+        for column in indices:
+            features_of_column = X[:, column]
+            for feature_value in features_of_column:
+
+                #split on feature
+                mask_0 = X[:, column] < feature_value
+                y_0 = y[mask_0]
+                
+                if y_0.shape[0] == 0 or y_0.shape[0] == y.shape[0]:
+                    #we have hit an outermost value, a split is empty so not good
+                    # print("split no good")
+                    continue
+                
+                mask_1 = np.invert(mask_0)
+                y_1 = y[mask_1]
+                    
+                variance_redcution_from_candidate = self.goodness_test(y, y_0, y_1)
+                
+                if variance_redcution_from_candidate > best_var_red:
+                    best_var_red = variance_redcution_from_candidate
+                    best_column_to_split = column
+                    best_feature_value_to_split_on = feature_value
+                    
+                    
+        return (best_column_to_split, best_feature_value_to_split_on)
+
+
     
     """
         predicts and returns y for the given X
     """
     def predict(self, X):
+        try: #we don't need pandas dataframes, we want np arrays
+            X = X.to_numpy()
+        except AttributeError:
+            pass
         
         if self.tree_root == None:
             raise AttributeError("Tree has not been trained. No root set")
@@ -218,7 +201,6 @@ class DTRegressor():
             y = []
             stack_method = None #for selecting how the single predictions should be put together
             # axis = -1
-            
             for X_i in X:
                 prediction = self.tree_root.get_prediction(X_i)
                 
@@ -239,24 +221,42 @@ class DTRegressor():
             # return np.stack(y, axis=axis)
     
     """
-    calculates the mean squared error for two vectors (or two matrices for each of the respective columns)
+        calculates the mean squared error for two vectors (or two matrices for each of the respective columns)
     """
     def _mse(self, prediction_matrix, y):
         return ((prediction_matrix - y)**2).mean(axis=0)
         
     """
-    calculates the mean absolute error for two vectors (or two matrices for each of the respective columns)
+        calculates the mean absolute error for two vectors (or two matrices for each of the respective columns)
     """
     def _mae(self, prediction_matrix, y):
         return (np.abs(prediction_matrix - y)).mean(axis=0)
     
+    def _variance_reduction(self, y, y_0, y_1):
+        samples_num_0 = len(y_0)
+        samples_num_1 = len(y_1)
+        samples_num_tot = len(y)
+        y_variance = self._mse(np.mean(y,axis=0), y)
+        y_0_variance = self._mse(np.mean(y_0,axis=0), y_0)
+        y_1_variance = self._mse(np.mean(y_1,axis=0), y_1)
+        
+        return y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
+    
+    def _absolute_reduction(self, y, y_0, y_1):
+        samples_num_0 = len(y_0)
+        samples_num_1 = len(y_1)
+        samples_num_tot = len(y)
+        y_variance = self._mae(np.mean(y,axis=0), y)
+        y_0_variance = self._mae(np.mean(y_0,axis=0), y_0)
+        y_1_variance = self._mae(np.mean(y_1,axis=0), y_1)
+        
+        return y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
     
     """
     a little helper method to only return the first n indices
     where n is determined in some way by num_to_select
     """
     def _select_indices(self, num_to_select, indices):
-
         if num_to_select == None:
             selected_indices = indices
         elif isinstance(num_to_select, float):
