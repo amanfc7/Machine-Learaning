@@ -31,7 +31,8 @@ class DTRegressor():
                  max_features=None,
                  min_samples_split=2, 
                  min_samples_leaf=1,
-                 max_leaf_nodes=None):
+                 max_leaf_nodes=None,
+                 verbose=False):
         self.max_depth = -1 if max_depth == None else max_depth
         self.tree_root = None
         self.epsilon = epsilon
@@ -56,6 +57,8 @@ class DTRegressor():
         self.min_samples_split = min_samples_split #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
         self.max_leaf_nodes = max_leaf_nodes #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
 
+        self.verbose = verbose
+
     
     """
         trains the model
@@ -76,10 +79,12 @@ class DTRegressor():
         else:
             node, self.depth_reached, self.num_leaves = self._fit_rec(X, y, 0)
             self.tree_root = node
-            # print("depth reached: %d" % self.depth_reached)
-            # print("leaves created: %d" % self.num_leaves)
+            
 
-        print("*"*10+" Tree training finished "+"*"*10)
+        if self.verbose:
+            print("*"*10+" Tree training finished "+"*"*10)
+            print("depth reached: %d" % self.depth_reached)
+            print("leaves created: %d" % self.num_leaves)
                     
     """
         X should be a numpy array of shape(number_of_samples, number_of_features)
@@ -106,13 +111,18 @@ class DTRegressor():
         else:
             # return an inner node with children set by recursive calls to _fit(), with i-1 and split X, y 
             #    --> divide X based on whatever splitting criterion I calculate, then pass only the respective parts of X and the corresponding parts of y to the repective recursive calls
-            X_0, y_0, X_1, y_1, test = self._create_split(X, y)
+            try:
+                X_0, y_0, X_1, y_1, test = self._create_split(X, y)
+                
+                child_0, depth_0, num_nodes_0 = self._fit_rec(X_0, y_0, depth+1)
+                child_1, depth_1, num_nodes_1 = self._fit_rec(X_1, y_1, depth+1)
+                node = self.InnerNode(test, [child_0, child_1])
+                ret_depth = max(depth_0, depth_1)
+                ret_num_leaves = num_nodes_0 + num_nodes_1
+            except TypeError:
+                # all remaining samples have the same values in all features, we can't make a reasonable split, just take the average
+                node = self.LeafNode(np.mean(y,axis=0))
             
-            child_0, depth_0, num_nodes_0 = self._fit_rec(X_0, y_0, depth+1)
-            child_1, depth_1, num_nodes_1 = self._fit_rec(X_1, y_1, depth+1)
-            node = self.InnerNode(test, [child_0, child_1])
-            ret_depth = max(depth_0, depth_1)
-            ret_num_leaves = num_nodes_0 + num_nodes_1
         
         return (node, ret_depth, ret_num_leaves)
     
@@ -155,8 +165,9 @@ class DTRegressor():
 
     def _create_candidate_split(self, X, y, indices):
         best_var_red = -float("inf")
-        best_column_to_split = 0
-        best_feature_value_to_split_on = 0
+        best_column_to_split = None
+        best_feature_value_to_split_on = None
+
         
         for column in indices:
             features_of_column = X[:, column]
@@ -173,6 +184,11 @@ class DTRegressor():
                 
                 mask_1 = np.invert(mask_0)
                 y_1 = y[mask_1]
+
+                # if y_0.shape[0] == 0 or y_1.shape[0] == 0:
+                #     #we have hit an outermost value, a split is empty so not good
+                #     # print("split no good")
+                #     continue
                     
                 variance_redcution_from_candidate = self.goodness_test(y, y_0, y_1)
                 
@@ -180,8 +196,9 @@ class DTRegressor():
                     best_var_red = variance_redcution_from_candidate
                     best_column_to_split = column
                     best_feature_value_to_split_on = feature_value
+
                     
-                    
+         
         return (best_column_to_split, best_feature_value_to_split_on)
 
 

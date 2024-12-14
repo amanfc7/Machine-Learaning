@@ -82,7 +82,7 @@ class RandomForestRegressor():
         data_sets = []
         indices = [i for i in range(X.shape[0])]
         for i in range(self.num_trees):
-            # select a number of samples (bootstrapping, selection with replacement) for each data set (TODO: how many - fixed/random?)
+            # select a number of samples (bootstrapping, selection with replacement) for each data set
             # we want to select indices from range(num_samples), then add tuples (X[these_indices], y[these_indices])    
             self.rd.shuffle(indices)
             selected_indices = self._select_indices(self.max_samples_in_tree, indices)
