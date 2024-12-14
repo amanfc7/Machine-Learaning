@@ -24,8 +24,10 @@ def train_model():
     
     t0= time.time()
     # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
+    clf = RandomForestRegressor()
     # clf = RandomForestRegressor(use_skl_tree=True)
-    clf = RandomForestRegressor(criterion="absolute_error")
+    # clf = RandomForestRegressor(criterion="absolute_error")
+    # clf = RFR(criterion="absolute_error")
     # clf = RFR()
     clf.fit(X_train, y_train)
     print("Training time: %f" % (time.time() - t0))
@@ -40,7 +42,6 @@ def train_model():
     
     
     #some quick evaluation
-    # print(r2_score(y_test, clf_t_skl.predict(X_test)))
     t0= time.time()
     y_pred_test = clf.predict(X_test)
     print("Prediction time: %f" % (time.time() - t0))

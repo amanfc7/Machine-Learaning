@@ -108,6 +108,7 @@ class DTRegressor():
             #standard deviation for (all) predicted values is smaller than our target value, stop early
             #so for all X_is the average of the corresponding y_is is not too far from the individual y_is
             node = self.LeafNode(np.mean(y,axis=0))
+            # print("early stop from small SD")
         else:
             # return an inner node with children set by recursive calls to _fit(), with i-1 and split X, y 
             #    --> divide X based on whatever splitting criterion I calculate, then pass only the respective parts of X and the corresponding parts of y to the repective recursive calls
@@ -126,7 +127,7 @@ class DTRegressor():
         
         return (node, ret_depth, ret_num_leaves)
     
-    # def _fit(self, X, y, depth_reached):
+    # def _fit_qu(self, X, y, depth_reached):
     #     pass#put inner nodes to expand next in a queue, based on how much splitting them reduces variance?
         
     def _create_split(self, X, y):
@@ -178,17 +179,13 @@ class DTRegressor():
                 y_0 = y[mask_0]
                 
                 if y_0.shape[0] == 0 or y_0.shape[0] == y.shape[0]:
-                    #we have hit an outermost value, a split is empty so not good
+                    #we have hit an outermost value in the range for this feature, one split is empty so not good
                     # print("split no good")
                     continue
                 
                 mask_1 = np.invert(mask_0)
                 y_1 = y[mask_1]
 
-                # if y_0.shape[0] == 0 or y_1.shape[0] == 0:
-                #     #we have hit an outermost value, a split is empty so not good
-                #     # print("split no good")
-                #     continue
                     
                 variance_redcution_from_candidate = self.goodness_test(y, y_0, y_1)
                 
@@ -249,6 +246,9 @@ class DTRegressor():
     def _mae(self, prediction_matrix, y):
         return (np.abs(prediction_matrix - y)).mean(axis=0)
     
+    """
+        computes the variance reduction for a y and a given split into y_0 and y_1
+    """
     def _variance_reduction(self, y, y_0, y_1):
         samples_num_0 = len(y_0)
         samples_num_1 = len(y_1)
@@ -270,8 +270,8 @@ class DTRegressor():
         return y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
     
     """
-    a little helper method to only return the first n indices
-    where n is determined in some way by num_to_select
+        a little helper method to only return the first n indices
+        where n is determined in some way by num_to_select
     """
     def _select_indices(self, num_to_select, indices):
         if num_to_select == None:

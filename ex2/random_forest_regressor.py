@@ -63,7 +63,7 @@ class RandomForestRegressor():
         self.max_samples_in_tree = max_samples
         self.max_features = max_features
         
-        self.bootstrap = bootstrap #TODO: make this do something
+        self.bootstrap = bootstrap
         self.min_samples_leaf = min_samples_leaf
         self.min_samples_split = min_samples_split
         self.max_leaf_nodes = max_leaf_nodes 
@@ -85,18 +85,19 @@ class RandomForestRegressor():
             # select a number of samples (bootstrapping, selection with replacement) for each data set
             # we want to select indices from range(num_samples), then add tuples (X[these_indices], y[these_indices])    
             self.rd.shuffle(indices)
-            selected_indices = self._select_indices(self.max_samples_in_tree, indices)
-
+            if self.bootstrap:
+                selected_indices = self._select_indices(self.max_samples_in_tree, indices)
+            else:
+                selected_indices = indices
             data_sets.append((X[selected_indices], 
                               y[selected_indices]))
-        # 2. buld multiple classifiers
+        # 2. build multiple classifiers
         self.trees = []
         for i, data_set in enumerate(data_sets):
             clf = self.TreeClass(
                 max_depth=self.max_depth,
                 random_state=None if self.random_state == None else self.random_state+i,
-                splitter='random', 
-                # compute_split_alg=self.criterion,
+                splitter='random',
                 criterion=self.criterion,
                 max_features=self.max_features,
                 min_samples_leaf=self.min_samples_leaf,
@@ -122,10 +123,7 @@ class RandomForestRegressor():
                 prediction = tree.predict(X)
                 if prediction.ndim == 2 and prediction.shape[1] == 1: #sometimes predicitions seem to have shape (m,) and sometimes (m,1)
                     prediction = prediction.flatten()
-                # print(prediction.shape)
                 predictions.append(prediction)
-            # predictions = [tree.predict(X) for tree in self.trees]
-            # print(predictions)
             predictions = np.array(predictions)
             # combine predictions 
             if self.vote == 'mean':
