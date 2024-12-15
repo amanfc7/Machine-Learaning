@@ -1,0 +1,37 @@
+
+College
+data_set_1_regr.py
+
+clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=30, max_leaf_nodes=30,random_state=random_state)
+
+
+Training time: 21.158585
+Prediction time: 0.375552
+R2 score: 0.431119
+MSE: 0.028615
+MAE: 0.127053
+
+
+clf = DTRegressor(splitter='random',  max_leaf_nodes=100, verbose=True, random_state=random_state)
+
+********** Tree training finished **********
+depth reached: 59
+leaves created: 100
+Training time: 8.700220
+Prediction time: 0.000000
+R2 score: 0.357604
+MSE: 0.032312
+MAE: 0.133707
+
+clf = DTRegressor(splitter='random', verbose=True, random_state=random_state)
+
+********** Tree training finished **********
+depth reached: 33
+leaves created: 4623
+Training time: 26.890872
+Prediction time: 0.018203
+R2 score: 0.070270
+MSE: 0.046765
+MAE: 0.152530
+
+
