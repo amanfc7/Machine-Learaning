@@ -31,8 +31,8 @@ def train_model():
     
     t0= time.time()
     # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state)
-    # clf = RandomForestRegressor(random_state=random_state)
-    clf = RandomForestRegressor(random_state=random_state, max_leaf_nodes=20)
+    clf = RandomForestRegressor(random_state=random_state)
+    # clf = RandomForestRegressor(random_state=random_state, max_leaf_nodes=20) # Training time: 1280.845247; Prediction time: 0.572937; R2 score: 0.297824; MSE: 0.035319; MAE: 0.145965
     clf.fit(X_train, y_train)
     print("Training time: %f" % (time.time() - t0))
     
