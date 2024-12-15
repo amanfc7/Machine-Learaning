@@ -17,20 +17,7 @@ y = df['Y house price of unit area'].to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
 
 
-def train_model(X_train, X_test, y_train, y_test, do_gridsearch=False, apply_pca=False, n_components=None):
-    # Apply PCA if enabled
-    if apply_pca:
-        pca = PCA(n_components=n_components)
-        print(f"Applying PCA with n_components={n_components}...")
-            
-        # Fit PCA on the training set and transform both sets
-        X_train = pca.fit_transform(X_train)
-        X_test = pca.transform(X_test)
-
-        print(f"Explained Variance Ratio (first {n_components} components): {pca.explained_variance_ratio_}")
-        print(f"Total Explained Variance: {sum(pca.explained_variance_ratio_):.2f}")
-
-
+def train_model(X_train, X_test, y_train, y_test, do_gridsearch=False):
 
     if do_gridsearch:
         # GridSearch
@@ -90,4 +77,4 @@ def evaluate_model(y_test, y_pred):
     print("Mean Absolute Error (MAE):", mae)
 
 
-train_model(X_train, X_test, y_train, y_test, do_gridsearch=True, apply_pca=False, n_components=25)
+train_model(X_train, X_test, y_train, y_test, do_gridsearch=True)
