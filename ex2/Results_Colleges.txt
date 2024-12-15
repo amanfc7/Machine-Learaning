@@ -27,6 +27,14 @@ R2 score: 0.163586
 MSE: 0.042071
 MAE: 0.144739
 
+clf = RandomForestRegressor(use_skl_tree=True)
+
+Training time: 2.424979
+Prediction time: 0.044881
+R2 score: 0.533007
+MSE: 0.023490
+MAE: 0.106695
+
 
 clf = DTRegressor(splitter='random',  max_leaf_nodes=100, verbose=True, random_state=random_state)
 
