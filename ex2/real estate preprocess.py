@@ -6,7 +6,6 @@ from sklearn.preprocessing import RobustScaler
 file_path = r"C:\Users\amanf\Downloads\ML_Ex_2\Real estate valuation data set.xlsx"
 
 df = pd.read_excel(file_path)
-# df = df.drop(columns=['No', 'X1 transaction date'])      # better perfomance metrics
 
 def preprocess_data(df):
 
