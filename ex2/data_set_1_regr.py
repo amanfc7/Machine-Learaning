@@ -29,23 +29,22 @@ def train_model():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=0)
     
-    # t0= time.time()
-    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state)
-    # # clf = RandomForestRegressor(random_state=random_state)
-    # clf.fit(X_train, y_train)
-    # print("Training time: %f" % (time.time() - t0))
-    
-    # y_prediction = clf.predict(X_test)
-
-    
     t0= time.time()
-    clf = DTRegressor(splitter='random',  max_leaf_nodes=20, verbose=True, random_state=random_state)
-    clf.fit(X_train, y_train) 
+    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state)
+    # clf = RandomForestRegressor(random_state=random_state)
+    clf = RandomForestRegressor(random_state=random_state, max_leaf_nodes=20)
+    clf.fit(X_train, y_train)
     print("Training time: %f" % (time.time() - t0))
     
     
+    # t0= time.time()
+    # # clf = DTRegressor(splitter='random',  max_leaf_nodes=20, verbose=True, random_state=random_state)
+    # clf = DTRegressor(splitter='random', verbose=True, random_state=random_state)
+    # clf.fit(X_train, y_train) 
+    # print("Training time: %f" % (time.time() - t0))
+    
+    
     #some quick evaluation
-    # print(r2_score(y_test, clf_t_skl.predict(X_test)))
     t0= time.time()
     y_pred_test = clf.predict(X_test)
     print("Prediction time: %f" % (time.time() - t0))

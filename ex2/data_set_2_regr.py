@@ -21,7 +21,8 @@ def train_model():
     ds = pd.read_csv('real_estate_preprocessed.csv')
     # if verbose:
     #     print(ds.sample(3))
-    X = ds.drop(['No','Y house price of unit area'], axis=1)
+    # X = ds.drop(['No','Y house price of unit area'], axis=1)
+    X = ds.drop(['Y house price of unit area'], axis=1)
     # X = X.where(X!='unknown', other=np.nan)
     y = ds['Y house price of unit area']
     

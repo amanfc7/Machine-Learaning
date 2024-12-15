@@ -268,6 +268,9 @@ class DTRegressor():
         
         for column in indices:
             features_of_column = X[:, column]
+            features_of_column = np.unique(X[:, column]) #
+            # features_of_column.sort() #no improvement: n log n vs 2n
+            # for feature_value in features_of_column[1:]:
             for feature_value in features_of_column:
 
                 #split on feature
