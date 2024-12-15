@@ -3,7 +3,7 @@ from sklearn.preprocessing import RobustScaler
 
 # for loading the dataset:
 
-file_path = r"C:\Users\amanf\Downloads\ex2\Real_estate_valuation.csv"
+file_path = "Real_estate_valuation.csv"
 
 df = pd.read_excel(file_path)
 
@@ -35,7 +35,7 @@ def preprocess_data(df):
 
     # to save the preprocessed dataset to a CSV file:
 
-    preprocessed_file_path = r"C:\Users\amanf\Downloads\ex2\real_estate_preprocessed.csv"
+    preprocessed_file_path = "real_estate_preprocessed.csv"
     df.to_csv(preprocessed_file_path, index=False)
     print(f"Preprocessed data saved to '{preprocessed_file_path}'.")
 
