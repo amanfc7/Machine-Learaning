@@ -166,7 +166,7 @@ def preprocess_data(df, dataset_name, handle_missing=False, target_column='perce
 # the file path for the dataset:
 
 datasets = {
-    "College": r"C:\Users\amanf\Downloads\ML_Ex_2\dataset.arff"
+    "College": r"dataset.arff"
 }
 
 # Load datasets:
@@ -177,11 +177,7 @@ college_data = load(datasets["College"], is_arff=True)
 
 college_data_after = preprocess_data(college_data.copy(), "College", handle_missing=True, apply_variance_threshold=True)
 
-# output directory:
-
-output_dir = r"C:\Users\amanf\Downloads\ML_Ex_2\csv"
-os.makedirs(output_dir, exist_ok=True)
 
 # to save preprocessed dataset:
 
-college_data_after.to_csv(os.path.join(output_dir, "college_data_preprocessed.csv"), index=False)
+college_data_after.to_csv(os.path.join("college_data_preprocessed.csv"), index=False)
