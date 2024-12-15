@@ -110,7 +110,6 @@ def evaluate_model(y_test, y_pred):
     print("\nModel Evaluation:")
     print("Model score on test set (R²):", r2)
     print("Mean Squared Error (MSE):", mse)
-    print("Root Mean Squared Error (RMSE):", rmse)
     print("Mean Absolute Error (MAE):", mae)
 
 
