@@ -14,10 +14,10 @@ import pandas as pd
 
 
 def train_model():
-    ds = pd.read_csv('colleges_preprocessed.csv')
+    ds = pd.read_csv('colleges_data_preprocessed.csv')
     # if verbose:
     #     print(ds.sample(3))
-    X = ds.drop(['percent_pell_grant'], axis=1)
+    X = ds.drop(['UNITID','percent_pell_grant'], axis=1)
     # X = X.where(X!='unknown', other=np.nan)
     y = ds['percent_pell_grant']
     
@@ -28,8 +28,8 @@ def train_model():
         X, y, test_size=0.3, random_state=0)
     
     t0= time.time()
-    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
-    clf = RandomForestRegressor()
+    clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
+    # clf = RandomForestRegressor()
     clf.fit(X_train, y_train)
     print("Training time: %f" % (time.time() - t0))
     
