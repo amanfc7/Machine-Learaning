@@ -14,16 +14,10 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 import pandas as pd
 
 def train_model():
-    # ds = fetch_ucirepo(id=477) 
-    # X = ds.data.features 
-    # y = ds.data.targets 
+    random_state = 42
 
     ds = pd.read_csv('real_estate_preprocessed.csv')
-    # if verbose:
-    #     print(ds.sample(3))
-    # X = ds.drop(['No','Y house price of unit area'], axis=1)
     X = ds.drop(['Y house price of unit area'], axis=1)
-    # X = X.where(X!='unknown', other=np.nan)
     y = ds['Y house price of unit area']
     
     X_train, X_test, y_train, y_test = train_test_split(

@@ -17,14 +17,8 @@ def train_model():
     random_state = 42
 
     ds = pd.read_csv('college_data_preprocessed.csv')
-    # if verbose:
-    #     print(ds.sample(3))
     X = ds.drop(['UNITID','percent_pell_grant'], axis=1)
-    # X = X.where(X!='unknown', other=np.nan)
     y = ds['percent_pell_grant']
-    
-    # print(X)
-    # print(y)
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=0)
@@ -32,7 +26,7 @@ def train_model():
     t0= time.time()
     # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state)
     clf = RandomForestRegressor(random_state=random_state)
-    # clf = RandomForestRegressor(random_state=random_state, max_leaf_nodes=20) # Training time: 1280.845247; Prediction time: 0.572937; R2 score: 0.297824; MSE: 0.035319; MAE: 0.145965
+    # clf = RandomForestRegressor(random_state=random_state, max_leaf_nodes=20) # Training time: 1280.845247 seconds ~ 21 min ; Prediction time: 0.572937; R2 score: 0.297824; MSE: 0.035319; MAE: 0.145965
     clf.fit(X_train, y_train)
     print("Training time: %f" % (time.time() - t0))
     

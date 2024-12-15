@@ -13,15 +13,19 @@ class DTRegressor():
     """
     Parameters:
         max_depth: max depth of decision tree. 0 for Zero Rule, 1 for One Rule, -1 for unlimited
-        compute_split_alg: the algorithm used to compute the best split of the data
-            should be one out of means squared error ('mse'), mean absolute error ('mae')
+        criterion: the algorithm used to compute the best split of the data
+            should be one out of means squared error ('squared_error'), mean absolute error ('absolute_error')
         epsilon: stop early if standard deviation of prediction is smaller than this
-        TODO: something about (pre-)pruning, maybe
         random_state: parameter for reproducability for eventual random operations; default=None
         splitter: 'best' to choose the best from all possible splits at each step, 
             'random' to choose the best split from max_features random features; default: 'best'
         max_features: upper limit to how many features are selected when computing the split. 
             Only has an effect if splitter='random' and max_features < sample features; default: None
+        min_samples_split: if set gives a a lower limit to the amount of samples that should be part of each leaf; default: 2
+        min_samples_leaf: if set gives a a lower limit to the amount of samples that should be part of each leaf; default: 1
+        max_leaf_nodes: if set to an integer, only up to this amount of leaves will be created in total; default: None
+        verbose: if True, print some details about the tree once training has finished; default: False
+        
     """
     def __init__(self, 
                  max_depth=-1,
@@ -55,7 +59,7 @@ class DTRegressor():
         self.max_features = max_features
         
         self.min_samples_leaf = min_samples_leaf
-        self.min_samples_split = min_samples_split #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
+        self.min_samples_split = min_samples_split
         self.max_leaf_nodes = max_leaf_nodes
 
         self.verbose = verbose
@@ -73,6 +77,7 @@ class DTRegressor():
             pass
 
         self.computed_min_samples_leaf = self._compute_min_samples_number(self.min_samples_leaf, X.shape[0])
+        self.computed_min_samples_split = self._compute_min_samples_number(self.min_samples_split, X.shape[0])
         
         if self.max_depth == 0:
             #Zero Rule
@@ -102,8 +107,8 @@ class DTRegressor():
         if X.shape[0] == 1:
             #only one sample (row) left, we want to predict its y-value(s) 
             node = self.LeafNode(y)
-        elif X.shape[0] < 2*self.computed_min_samples_leaf:
-            #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+        elif X.shape[0] < self.computed_min_samples_split:
+            #there are less samples left than we want to split further
             node = self.LeafNode(np.mean(y,axis=0))
         elif depth == self.max_depth:
             #max depth reached, we want to predict the mean(s) of its y-values 
@@ -141,8 +146,8 @@ class DTRegressor():
             #only one sample (row) left, we want to predict its y-value(s) 
             node = self.LeafNode(y)
             return (node, depth_reached, min_leaves_created)
-        elif X.shape[0] < 2*self.computed_min_samples_leaf:
-            #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+        elif X.shape[0] < self.computed_min_samples_split:
+            #there are less samples left than we want to split further
             node = self.LeafNode(np.mean(y,axis=0))
             return (node, depth_reached, min_leaves_created)
         elif np.max(np.sqrt(self._mse(y.mean(axis=0), y))) < self.epsilon:  
@@ -176,8 +181,8 @@ class DTRegressor():
             if X_0.shape[0] == 1:
                 #only one sample (row) left, we want to predict its y-value(s) 
                 parent_node.set_child(0, self.LeafNode(np.mean(y_0,axis=0)))
-            elif X_0.shape[0] < 2*self.computed_min_samples_leaf:
-                #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+            elif X_0.shape[0] < self.computed_min_samples_split:
+            #there are less samples left than we want to split further
                 parent_node.set_child(0, self.LeafNode(np.mean(y_0,axis=0)))
             elif np.max(np.sqrt(self._mse(y_0.mean(axis=0), y_0))) < self.epsilon:  
                 #standard deviation for (all) predicted values is smaller than our target value, stop early
@@ -194,8 +199,8 @@ class DTRegressor():
             if X_1.shape[0] == 1:
                 #only one sample (row) left, we want to predict its y-value(s) 
                 parent_node.set_child(1, self.LeafNode(np.mean(y_1,axis=0)))
-            elif X_0.shape[0] < 2*self.computed_min_samples_leaf:
-                #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+            elif X_1.shape[0] < self.computed_min_samples_split:
+            #there are less samples left than we want to split further
                 parent_node.set_child(1, self.LeafNode(np.mean(y_1,axis=0)))
             elif np.max(np.sqrt(self._mse(y_1.mean(axis=0), y_1))) < self.epsilon:  
                 #standard deviation for (all) predicted values is smaller than our target value, stop early
@@ -279,6 +284,11 @@ class DTRegressor():
                 
                 if y_0.shape[0] == 0 or y_0.shape[0] == y.shape[0]:
                     #we have hit an outermost value in the range for this feature, one split is empty so not good
+                    # print("split no good")
+                    continue
+
+                if y_0.shape[0] < self.computed_min_samples_leaf or (y.shape[0] - y_0.shape[0]) < self.computed_min_samples_leaf:
+                 #the split does not leave enough samples in a leaf
                     # print("split no good")
                     continue
                 
