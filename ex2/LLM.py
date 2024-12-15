@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
+import time
 
 # Decision Tree Regressor class
 class DecisionTreeRegressor():
@@ -142,12 +143,20 @@ y = ds[dataset["target"]].to_numpy()
 # Split the dataset into training and test sets (80% train, 20% test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
+
+t0 = time.time()
+
 # Train the RandomForestRegressor
 rf = RandomForestRegressor(n_estimators=10, max_depth=5)
 rf.fit(X_train, y_train)
 
+print("Training time: %f" % (time.time() - t0))
+
+
 # Predict on the test set
+t0 = time.time()
 y_pred = rf.predict(X_test)
+print("Prediction time: %f" % (time.time() - t0))
 
 # Evaluate the model
 evaluate_model(y_test, y_pred)
