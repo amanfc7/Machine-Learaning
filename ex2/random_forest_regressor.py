@@ -13,16 +13,18 @@ class RandomForestRegressor():
     
     """
         use_skl_tree: should the random forest be built from trees from sklearn? For testing/comparsion purposes, default: False
-        n_estimators:
-        max_depth:
-        random_state:
-        criterion:
-        max_samples:
-        max_features:
-        bootstrap:
-        min_samples_split:
-        min_samples_leaf:
-        max_leaf_nodes:
+        n_estimators: the number of trees created; default: 100
+        max_depth: the maximum depth for a created tree; default: None
+        random_state: a seed for the rng to allow reproducability; default: None
+        criterion: the algorithm used to compute the best split of the data in a tree
+            should be one out of means squared error ('squared_error'), mean absolute error ('absolute_error')
+        bootstrap: should trees be trained only on a subset of the whole dataset; deafult: True
+        max_samples: upper limit of samples choosen to train each tree with; default: None
+        max_features: upper limit to how many features are selected when computing the split. 
+            Only has an effect if splitter='random' and max_features < sample features; default: None
+        min_samples_split: if set gives a a lower limit to the amount of samples that should be part of each leaf; default: 2
+        min_samples_leaf: if set gives a a lower limit to the amount of samples that should be part of each leaf; default: 1
+        max_leaf_nodes: if set to an integer, only up to this amount of leaves will be created in total; default: None
         
     """
     def __init__(self, use_skl_tree=False,
@@ -42,12 +44,6 @@ class RandomForestRegressor():
         else:
             self.TreeClass = DecisionTreeRegressor
             
-        # if criterion == 'squared_error':
-        #     self.criterion = 'mse'
-        # elif criterion == 'absolute_error':
-        #     self.criterion = 'mae'
-        # else:
-        #     raise ValueError("criterion not implemented")
         self.criterion = criterion
         
         self.random_state = random_state
