@@ -77,4 +77,4 @@ def evaluate_model(y_test, y_pred):
     print("Mean Absolute Error (MAE):", mae)
 
 
-train_model(X_train, X_test, y_train, y_test, do_gridsearch=True)
+train_model(X_train, X_test, y_train, y_test, do_gridsearch=False)
