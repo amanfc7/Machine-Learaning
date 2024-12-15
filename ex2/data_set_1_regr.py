@@ -9,6 +9,7 @@ from DT_regressor import DTRegressor
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.ensemble import RandomForestRegressor as SKRandomForest
 
 import pandas as pd
 
@@ -27,7 +28,18 @@ def train_model():
     # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state) #Training time: 11.509373, Prediction time: 0.386701, R2 score: 0.428260, MSE: 0.028758, MAE: 0.128715
     # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20,random_state=random_state) #Training time: 17.850327, Prediction time: 0.314665, R2 score: 0.436811, MSE: 0.028328, MAE: 0.126197
     # clf = RandomForestRegressor(use_skl_tree=False, max_samples=500, max_features=20,random_state=random_state, n_estimators=20) #Training time: 37.884419, Prediction time: 0.128818, R2 score: 0.454418, MSE: 0.027443, MAE: 0.121389
-    clf = RandomForestRegressor(use_skl_tree=False, max_samples=500, max_features=30,random_state=random_state, n_estimators=50) #Training time: 105.571297, Prediction time: 0.213839, R2 score: 0.474980, MSE: 0.026408, MAE: 0.118264
+    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=500, max_features=30,random_state=random_state, n_estimators=50) #Training time: 105.571297, Prediction time: 0.213839, R2 score: 0.474980, MSE: 0.026408, MAE: 0.118264
+
+    # clf = RandomForestRegressor(use_skl_tree=True, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state) #Training time: 0.147338, Prediction time: 0.012817, R2 score: 0.423249, MSE: 0.029010, MAE: 0.129396
+    # clf = RandomForestRegressor(use_skl_tree=True, max_samples=100, max_features=20,random_state=random_state) # Training time: 0.159919, Prediction time: 0.018211, R2 score: 0.449597, MSE: 0.027685, MAE: 0.125419
+    # clf = RandomForestRegressor(use_skl_tree=True, max_samples=500, max_features=20,random_state=random_state, n_estimators=20) #Training time: 0.053897, Prediction time: 0.004941, R2 score: 0.468006, MSE: 0.026759, MAE: 0.119701
+    # clf = RandomForestRegressor(use_skl_tree=True, max_samples=500, max_features=30,random_state=random_state, n_estimators=50) # Training time: 0.159063, Prediction time: 0.011951, R2 score: 0.495093, MSE: 0.025397, MAE: 0.115746
+
+    clf = SKRandomForest(max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state) #Training time: 0.099070, Prediction time: 0.007714, R2 score: 0.430232, MSE: 0.028659, MAE: 0.128625
+    # clf = SKRandomForest(max_samples=100, max_features=20,random_state=random_state) # Training time: 0.124228, Prediction time: 0.012463, R2 score: 0.437104, MSE: 0.028313, MAE: 0.127328
+    # clf = SKRandomForest(max_samples=500, max_features=20,random_state=random_state, n_estimators=20) #Training time: 0.090664, Prediction time: 0.004309, R2 score: 0.452682, MSE: 0.027530, MAE: 0.121641
+    # clf = SKRandomForest(max_samples=500, max_features=30,random_state=random_state, n_estimators=50) # Training time: 0.336685, Prediction time: 0.009530, R2 score: 0.483419, MSE: 0.025984, MAE: 0.117770
+
 
     # clf = RandomForestRegressor(random_state=random_state) #Training Time: too long
     # clf = RandomForestRegressor(random_state=random_state, use_skl_tree=True) #Training time: 2.282664, Prediction time: 0.039223, R2 score: 0.536232, MSE: 0.023327, MAE: 0.106790
