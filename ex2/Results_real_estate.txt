@@ -1,0 +1,66 @@
+Real estate
+data_set_2_regr.py
+
+clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=None)
+
+Training time: 7.494621
+Prediction time: 0.017163
+R2 score: 0.691978
+MSE: 52.494426
+MAE: 4.728800
+
+ clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=5)
+
+Training time: 5.546897
+Prediction time: 0.020684
+R2 score: 0.683203
+MSE: 53.989925
+MAE: 4.807627
+
+ clf = RandomForestRegressor()
+
+Training time: 22.979194
+Prediction time: 0.021268
+R2 score: 0.384806
+MSE: 104.843970
+MAE: 5.747136
+
+clf = DTRegressor(splitter='random')
+
+0.22280550003051758
+Prediction time: 0.000000
+R2 score: 0.346782
+MSE: 111.324220
+MAE: 6.043600
+
+clf = RandomForestRegressor(criterion="absolute_error")
+
+Training time: 21.235038
+Prediction time: 0.026742
+R2 score: 0.327150
+MSE: 114.669941
+MAE: 6.281476
+
+clf = RandomForestRegressor(use_skl_tree=True)
+
+Training time: 0.062601
+Prediction time: 0.007504
+R2 score: 0.636305
+MSE: 61.982419
+MAE: 5.054492
+
+clf = RFR(criterion="absolute_error")
+
+Training time: 0.319994
+Prediction time: 0.002936
+R2 score: 0.642547
+MSE: 60.918649
+MAE: 4.994092
+
+clf = RFR()
+
+Training time: 0.107296
+Prediction time: 0.000000
+R2 score: 0.633339
+MSE: 62.487901
+MAE: 4.936806
