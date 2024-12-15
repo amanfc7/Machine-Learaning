@@ -4,6 +4,7 @@
 import numpy as np
 # import pandas as pd
 import random
+from queue import PriorityQueue
 
 #vgl. 03, 04, 06, 07
 
@@ -55,7 +56,7 @@ class DTRegressor():
         
         self.min_samples_leaf = min_samples_leaf
         self.min_samples_split = min_samples_split #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
-        self.max_leaf_nodes = max_leaf_nodes #TODO: making this functional would prbly require (semi-)major tree rewrites in how it grows
+        self.max_leaf_nodes = max_leaf_nodes
 
         self.verbose = verbose
 
@@ -70,6 +71,8 @@ class DTRegressor():
             y = y.to_numpy()
         except AttributeError:
             pass
+
+        self.computed_min_samples_leaf = self._compute_min_samples_number(self.min_samples_leaf, X.shape[0])
         
         if self.max_depth == 0:
             #Zero Rule
@@ -77,8 +80,10 @@ class DTRegressor():
             self.depth = 0
             self.num_leaves = 1
         else:
-            node, self.depth_reached, self.num_leaves = self._fit_rec(X, y, 0)
-            self.tree_root = node
+            if self.max_leaf_nodes == None:
+                self.tree_root, self.depth_reached, self.num_leaves = self._fit_rec(X, y, 0)
+            else:
+                self.tree_root, self.depth_reached, self.num_leaves = self._fit_qu(X, y)
             
 
         if self.verbose:
@@ -97,7 +102,7 @@ class DTRegressor():
         if X.shape[0] == 1:
             #only one sample (row) left, we want to predict its y-value(s) 
             node = self.LeafNode(y)
-        elif X.shape[0] < 2*self._compute_min_samples_number(self.min_samples_leaf, X.shape[0]):
+        elif X.shape[0] < 2*self.computed_min_samples_leaf:
             #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
             node = self.LeafNode(np.mean(y,axis=0))
         elif depth == self.max_depth:
@@ -127,8 +132,99 @@ class DTRegressor():
         
         return (node, ret_depth, ret_num_leaves)
     
-    # def _fit_qu(self, X, y, depth_reached):
-    #     pass#put inner nodes to expand next in a queue, based on how much splitting them reduces variance?
+    def _fit_qu(self, X, y):
+        #put inner nodes to expand next in a queue, based on how much splitting them reduces variance?
+        depth_reached = 0
+        min_leaves_created = 1
+
+        if X.shape[0] == 1:
+            #only one sample (row) left, we want to predict its y-value(s) 
+            node = self.LeafNode(y)
+            return (node, depth_reached, min_leaves_created)
+        elif X.shape[0] < 2*self.computed_min_samples_leaf:
+            #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+            node = self.LeafNode(np.mean(y,axis=0))
+            return (node, depth_reached, min_leaves_created)
+        elif np.max(np.sqrt(self._mse(y.mean(axis=0), y))) < self.epsilon:  
+            #standard deviation for (all) predicted values is smaller than our target value, stop early
+            #so for all X_is the average of the corresponding y_is is not too far from the individual y_is
+            node = self.LeafNode(np.mean(y,axis=0))
+            # print("early stop from small SD")
+            return (node, depth_reached, min_leaves_created)
+        elif self.max_leaf_nodes <= min_leaves_created:
+            node = self.LeafNode(np.mean(y,axis=0))
+            # print("early stop from creating too many leaves")
+            return (node, depth_reached, min_leaves_created)
+
+        root_node = self.InnerNode(None, [None, None])
+        queue = PriorityQueue()
+        try:
+            queue.put(self._create_queue_item(X, y, root_node, depth_reached+1))
+        except TypeError:
+            # all remaining samples have the same values in all features, we can't make a reasonable split, just take the average
+            node = self.LeafNode(np.mean(y,axis=0))
+            return (node, depth_reached, min_leaves_created)
+
+        while not queue.empty() and min_leaves_created < self.max_leaf_nodes:
+            _, (X_0, y_0, X_1, y_1, test, _, parent_node, at_depth) = queue.get() #this picks the split resulting in the larges variance reduction
+            # we want to fill the parent node and then add more splits to the queue
+            parent_node.set_test(test)
+            if parent_node.test == None:
+                print("ALERT: test = none")
+            depth_reached = np.max([depth_reached, at_depth])
+
+            if X_0.shape[0] == 1:
+                #only one sample (row) left, we want to predict its y-value(s) 
+                parent_node.set_child(0, self.LeafNode(np.mean(y_0,axis=0)))
+            elif X_0.shape[0] < 2*self.computed_min_samples_leaf:
+                #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+                parent_node.set_child(0, self.LeafNode(np.mean(y_0,axis=0)))
+            elif np.max(np.sqrt(self._mse(y_0.mean(axis=0), y_0))) < self.epsilon:  
+                #standard deviation for (all) predicted values is smaller than our target value, stop early
+                parent_node.set_child(0, self.LeafNode(np.mean(y_0,axis=0)))
+            else:
+                try:
+                    child_0 = self.InnerNode(None, [None, None], parent_node=parent_node, parent_child_index=0)
+                    parent_node.set_child(0, child_0)
+                    queue.put(self._create_queue_item(X_0, y_0, child_0, depth_reached+1))
+                except TypeError:
+                    # all remaining samples have the same values in all features, we can't make a reasonable split, just take the average
+                    parent_node.set_child(0, self.LeafNode(np.mean(y_0,axis=0)))
+
+            if X_1.shape[0] == 1:
+                #only one sample (row) left, we want to predict its y-value(s) 
+                parent_node.set_child(1, self.LeafNode(np.mean(y_1,axis=0)))
+            elif X_0.shape[0] < 2*self.computed_min_samples_leaf:
+                #there are less than 2* min_samples_leaf samples left, splitting would mean creating a leaf with less samples
+                parent_node.set_child(1, self.LeafNode(np.mean(y_1,axis=0)))
+            elif np.max(np.sqrt(self._mse(y_1.mean(axis=0), y_1))) < self.epsilon:  
+                #standard deviation for (all) predicted values is smaller than our target value, stop early
+                parent_node.set_child(1, self.LeafNode(np.mean(y_1,axis=0)))
+            else:
+                try:
+                    child_1 = self.InnerNode(None, [None, None], parent_node=parent_node, parent_child_index=1)
+                    parent_node.set_child(1, child_1)
+                    queue.put(self._create_queue_item(X_1, y_1, child_1, depth_reached+1))
+                except TypeError:
+                    # all remaining samples have the same values in all features, we can't make a reasonable split, just take the average
+                    parent_node.set_child(1, self.LeafNode(np.mean(y_1,axis=0)))
+
+            min_leaves_created = min_leaves_created + 1
+
+        if not queue.empty():
+            #there are still some items in the queue, we need to turn empty inner nodes into leaves
+            while not queue.empty():
+                _, (_, _, _, _, _, y_mean, parent_node, at_depth) = queue.get() #this picks the split resulting in the larges variance reduction
+                parent_node.parent.set_child(parent_node.parent_child_index, self.LeafNode(y_mean))
+
+        return (root_node, depth_reached, min_leaves_created)
+        
+
+    def _create_queue_item(self, X, y, parent_node, at_depth):
+        X_0, y_0, X_1, y_1, test = self._create_split(X, y)
+        variance_redcution_from_candidate = self.goodness_test(y, y_0, y_1)
+        return (-variance_redcution_from_candidate, (X_0, y_0, X_1, y_1, test, np.mean(y,axis=0), parent_node, at_depth))
+        
         
     def _create_split(self, X, y):
         
@@ -257,7 +353,8 @@ class DTRegressor():
         y_0_variance = self._mse(np.mean(y_0,axis=0), y_0)
         y_1_variance = self._mse(np.mean(y_1,axis=0), y_1)
         
-        return y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
+        variance_reduction = y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
+        return np.max(variance_reduction) #max in case of multiple values to predict
     
     def _absolute_reduction(self, y, y_0, y_1):
         samples_num_0 = len(y_0)
@@ -267,7 +364,8 @@ class DTRegressor():
         y_0_variance = self._mae(np.mean(y_0,axis=0), y_0)
         y_1_variance = self._mae(np.mean(y_1,axis=0), y_1)
         
-        return y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
+        abs_red =  y_variance - (samples_num_0 / samples_num_tot * y_0_variance + samples_num_1 / samples_num_tot * y_1_variance)
+        return np.max(abs_red) #max in case of multiple values to predict
     
     """
         a little helper method to only return the first n indices
@@ -319,13 +417,27 @@ class DTRegressor():
             returns a non-negative integer < len(children)
             test should be set during the training step
         """
-        def __init__(self, test, children):
+
+        def __init__(self, test, children, parent_node=None, parent_child_index=None):
             super().__init__(children=children)
             self.test = test
+            self.parent = parent_node
+            self.parent_child_index = parent_child_index
+
+        # def __init__(self, test, children):
+        #     self.__init__(test, children, None, None)
+
+        
         
         def get_prediction(self, X_i):
             #use test to get the prediction value of the relevant of the child node
             return self.children[self.test(X_i)].get_prediction(X_i)
+        
+        def set_child(self, i, child):
+            self.children[i] = child
+
+        def set_test(self, test):
+            self.test = test
         
     class LeafNode(TreeNode):
         

@@ -14,7 +14,9 @@ import pandas as pd
 
 
 def train_model():
-    ds = pd.read_csv('colleges_data_preprocessed.csv')
+    random_state = 42
+
+    ds = pd.read_csv('college_data_preprocessed.csv')
     # if verbose:
     #     print(ds.sample(3))
     X = ds.drop(['UNITID','percent_pell_grant'], axis=1)
@@ -27,19 +29,19 @@ def train_model():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.3, random_state=0)
     
-    t0= time.time()
-    clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20)
-    # clf = RandomForestRegressor()
-    clf.fit(X_train, y_train)
-    print("Training time: %f" % (time.time() - t0))
+    # t0= time.time()
+    # clf = RandomForestRegressor(use_skl_tree=False, max_samples=100, max_features=20, max_leaf_nodes=20,random_state=random_state)
+    # # clf = RandomForestRegressor(random_state=random_state)
+    # clf.fit(X_train, y_train)
+    # print("Training time: %f" % (time.time() - t0))
     
     # y_prediction = clf.predict(X_test)
 
     
-    # t0= time.time()
-    # clf = DTRegressor(splitter='random')
-    # clf.fit(X_train, y_train) 
-    # print(time.time() - t0)
+    t0= time.time()
+    clf = DTRegressor(splitter='random',  max_leaf_nodes=20, verbose=True, random_state=random_state)
+    clf.fit(X_train, y_train) 
+    print("Training time: %f" % (time.time() - t0))
     
     
     #some quick evaluation
