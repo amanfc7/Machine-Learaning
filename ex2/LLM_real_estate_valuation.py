@@ -110,38 +110,18 @@ def evaluate_model(y_test, y_pred):
     print("\nModel Evaluation:")
     print("Model score on test set (R²):", r2)
     print("Mean Squared Error (MSE):", mse)
+    #print("Root Mean Squared Error (RMSE):", rmse)
     print("Mean Absolute Error (MAE):", mae)
 
 
 # Dataset Configuration
-datasets = {
-    "1": {"file": "./real_estate_preprocessed.csv", "target": "Y house price of unit area"},
-    "2": {"file": "./college_data_preprocessed.csv", "target": "percent_pell_grant"},
-}
+df = pd.read_csv("./real_estate_preprocessed.csv")
 
-# Prompt the user to choose a dataset
-print("Choose a dataset:")
-for key, value in datasets.items():
-    print(f"{key}: {value['file']} (Target: {value['target']})")
-
-choice = input("Enter the number corresponding to your choice: ").strip()
-if choice not in datasets:
-    print("Invalid choice. Exiting...")
-    exit()
-
-dataset = datasets[choice]
-
-# Load selected dataset
-print(f"\nLoading dataset: {dataset['file']}...")
-ds = pd.read_csv(dataset['file'])
-
-# Data (as numpy arrays)
-X = ds.drop(columns=[dataset["target"]]).to_numpy()
-y = ds[dataset["target"]].to_numpy()
+X = df.drop(columns=['Y house price of unit area']).to_numpy()
+y = df['Y house price of unit area'].to_numpy()
 
 # Split the dataset into training and test sets (80% train, 20% test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
 
 t0 = time.time()
 
