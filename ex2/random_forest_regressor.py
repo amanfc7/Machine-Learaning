@@ -101,6 +101,7 @@ class RandomForestRegressor():
                 max_leaf_nodes=self.max_leaf_nodes
                 )
             clf.fit(data_set[0], data_set[1])
+            print("Tree %d trained" % i)
             self.trees.append(clf)
         # 3. combine classifiers
         # done only when predicting
