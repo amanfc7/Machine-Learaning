@@ -13,43 +13,73 @@ from data_sets_util import load_ds
 # 4. TBD
 # 5. TBD
 
+
+
 def optimze(X_train, y_train, X_test, y_test, init_T=1000):
     curr_best = None
+    curr_best_score = 0.
     T = init_T
     t = 0
     
-    classifier_list = [MLPClassifier, RandomForestClassifier]
+    # classifier_list = [MLPClassifier, RandomForestClassifier]
     
-    classifier_0_hp_array = [ # for MLP
-        ('identity', 'logistic', 'tanh', 'relu'), #"activation": 
-        ('lbfgs', 'sgd', 'adam'), # "solver": 
-        ((15,2), (100,), (15,15), (20,3), (50, 50), (20, 20, 20), (100,100,100)), # "hidden_layer_sizes": --> maybe make that 'continious'
-        np.logspace(-10, 4, 15), # "alpha": --> continous?
-        ]
-    classifier_1_hp_array = [ # for TBD
-        [],
-        ]
-    classifier_2_hp_array = [ # for TBD
-        [],
-        ]
-    # classifier_3_hp_array = [ # for TBD
-    #     [],
+    classifier_0 =  [
+        MLPClassifier,
+        { # hyperparameter dict
+            "activation": ('identity', 'logistic', 'tanh', 'relu'),
+            "solver": ('lbfgs', 'sgd', 'adam'),
+            "hidden_layer_sizes": ((15,2), (100,), (15,15), (20,3), (50, 50), (20, 20, 20), (100,100,100)),
+            "alpha": np.logspace(-10, 4, 15),
+            # "max_iter": (200, 300),
+        }
+    ]
+    # classifier_0_hp_array = [ # for MLP
+    #     ('identity', 'logistic', 'tanh', 'relu'), #"activation": 
+    #     ('lbfgs', 'sgd', 'adam'), # "solver": 
+    #     ((15,2), (100,), (15,15), (20,3), (50, 50), (20, 20, 20), (100,100,100)), # "hidden_layer_sizes": --> maybe make that 'continious'
+    #     np.logspace(-10, 4, 15), # "alpha": --> continous?
     #     ]
-    # classifier_4_hp_array = [ # for TBD
-    #     [],
-    #     ]
+    #TODO
+    classifier_1 =  [
+        RandomForestClassifier,
+        { # hyperparameter dict
+            
+        }
+    ]
+    classifier_2 =  [
+        RandomForestClassifier,
+        { # hyperparameter dict
+            
+        }
+    ]
+    #TODO
+    classifier_3 =  [
+        RandomForestClassifier,
+        { # hyperparameter dict
+            
+        }
+    ]
+    #TODO
+    classifier_4 =  [
+        RandomForestClassifier,
+        { # hyperparameter dict
+            
+        }
+    ]
 
-    all_classifiers_array = [classifier_0_hp_array, classifier_1_hp_array, classifier_2_hp_array]
+    all_classifiers_array = [classifier_0, classifier_1, classifier_2, classifier_3, classifier_4]
     
     # select random initial solution
-    #TODO
-    max_hp_number = max([len(classifier_array) for classifier_array in all_classifiers_array])
+    #TODO: seems fine, check again
+    max_hp_number = max([len(classifier[1].keys()) for classifier in all_classifiers_array])
     init_solution_vect = np.random.rand(1+max_hp_number)
-    selected_classifier_index = int(len(all_classifiers_array) * init_solution_vect[0])
-    selected_classifier_array = all_classifiers_array[selected_classifier_index]
-    # for i, hyperparameter_space in enumerate(selected_classifier_array):
+    
 
+    clf = solution_vect_to_clf(init_solution_vect, all_classifiers_array)
+    curr_best_score = eval_solution(clf)
 
+    # now loop until stop
+    # stopping criterion is that one hour has passed (and/or perfect accuracy achieved?)
 
 
     
@@ -75,6 +105,8 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
 #idea: encode algs in vectors of length 1+[max hyperparameters to tone over all algs], where the first component indicates the alg and the others indicate teh hyperparameter. If chosen alg has less than max hyperparameters, ignore excess 
 #       if some hyperparameters have higher ranges, will probably need to round for lower --> just pick values from 0 to 1 and then scale to range!
 
+# should temperature restrict the size of the neighborhood or just affect the chance with which a worse solution gets kept? (easier) 
+
 #TODO: implement and test different cooling functions
 """
     Return a lowered temperature
@@ -87,6 +119,23 @@ def cool_down(T, t):
 """
 def eval_solution(solution):
     pass
+
+#TODO: double check if this makes sense
+"""
+    turns a solution vector into a classifier object and returns it
+"""
+def solution_vect_to_clf(solution_vect, solution_space):
+    selected_classifier_index = int(len(solution_space) * solution_vect[0])
+    selected_classifier = solution_space[selected_classifier_index]
+    chosen_hyperparameter_dict = {}
+    for i, key in enumerate(selected_classifier[1].keys()):
+        possible_values = selected_classifier[1][key]
+        solution_value_index = int(len(possible_values) * solution_vect[i+1])
+        chosen_hyperparameter_dict[key] = possible_values[solution_value_index]
+
+    
+    clf = selected_classifier[0](**chosen_hyperparameter_dict)
+    return clf
 
 
 """
