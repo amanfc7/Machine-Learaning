@@ -1,5 +1,6 @@
 
-# TODO: simple setup for utilizing TPOT. might just be done directly in comparison, maybe
+# simple setup for utilizing TPOT. might just be done directly in comparison, maybe
+# TODO: set up so it works with our/specified data sets
 
 # below is example use
 from tpot import TPOTClassifier
