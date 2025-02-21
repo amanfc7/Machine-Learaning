@@ -1,6 +1,7 @@
 
 # simple setup for utilizing another AUTO ML  implementation (pycaret). might just be done directly in comparison, maybe
-# TODO: set up so it works with our/specified data sets
+# TODO: set up so it works with our/specified data sets 
+#   right now its just the basic initial test
 
 # Classification OOP API Example
 
