@@ -74,7 +74,7 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
     init_solution_vect = np.random.rand(1+max_hp_number)
     
     clf = solution_vect_to_clf(init_solution_vect, all_classifiers_array)
-    curr_best_score = eval_solution(clf)
+    curr_best_score = eval_solution(clf, X_train, y_train, X_test, y_test)
     curr_score = curr_best_score
 
     current_solution = init_solution_vect
@@ -85,9 +85,11 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
 
 
     while (halting_criterion(start_time)): #one hour has not yet passed
-        while (termination_codition()):
-            new_solution = select_neighbor(current_solution, T)
-            new_score = solution_vect_to_clf(new_solution, all_classifiers_array)
+        i = 0
+        while (termination_codition(i)):
+            i = i + 1
+            new_solution = select_neighbor(current_solution, all_classifiers_array, T)
+            new_score = eval_solution(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
             if curr_score < new_score:
                 current_solution = new_solution
                 curr_score = new_score
@@ -99,8 +101,10 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
                     current_solution = new_solution
                     curr_score = new_score
 
+
         T = cool_down(T, t)
         t = t + 1
+        # print(t)
 
     
 
@@ -130,7 +134,7 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
 """
     Returns a solution in the neighborhood of the current solution
 """
-def select_neighbor(solution, T):
+def select_neighbor(solution, all_classifiers_array, T):
     return solution
 
 #TODO: implement and test different cooling functions
@@ -138,13 +142,15 @@ def select_neighbor(solution, T):
     Return a lowered temperature
 """
 def cool_down(T, t):
-    return T - 1
+    reduction_factor = 0.8
+    return T * reduction_factor
+    # return T - 1
 
 """
-    Termination condition for one 
+    Termination condition for one time step
 """
-def termination_codition():
-    return True
+def termination_codition(i):
+    return i < 10
 
 """
     Halting criterion for the whole algorithm
@@ -158,8 +164,9 @@ def halting_criterion(start_time):
 """
     Evaluates the goodness of a solution
 """
-def eval_solution(solution):
-    pass
+def eval_solution(solution_clf, X_train, y_train, X_test, y_test):
+    solution_clf.fit(X_train, y_train)
+    return solution_clf.score(X_test, y_test)
 
 #TODO: double check if this makes sense
 """
