@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 
-import sys
+import sys, time
 
 from data_sets_util import load_ds
 
@@ -16,12 +16,11 @@ from data_sets_util import load_ds
 
 
 def optimze(X_train, y_train, X_test, y_test, init_T=1000):
+    start_time = time.time()
     curr_best = None
     curr_best_score = 0.
     T = init_T
     t = 0
-    
-    # classifier_list = [MLPClassifier, RandomForestClassifier]
     
     classifier_0 =  [
         MLPClassifier,
@@ -74,15 +73,35 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
     max_hp_number = max([len(classifier[1].keys()) for classifier in all_classifiers_array])
     init_solution_vect = np.random.rand(1+max_hp_number)
     
-
     clf = solution_vect_to_clf(init_solution_vect, all_classifiers_array)
     curr_best_score = eval_solution(clf)
+    curr_score = curr_best_score
+
+    current_solution = init_solution_vect
+    current_best = init_solution_vect
 
     # now loop until stop
     # stopping criterion is that one hour has passed (and/or perfect accuracy achieved?)
 
 
-    
+    while (halting_criterion(start_time)): #one hour has not yet passed
+        while (termination_codition()):
+            new_solution = select_neighbor(current_solution, T)
+            new_score = solution_vect_to_clf(new_solution, all_classifiers_array)
+            if curr_score < new_score:
+                current_solution = new_solution
+                curr_score = new_score
+                if curr_best_score < curr_score:
+                    current_best = current_solution
+                    curr_best_score = curr_score
+            else:
+                if np.random.rand(1) < np.exp((new_score - curr_score) / T):
+                    current_solution = new_solution
+                    curr_score = new_score
+
+        T = cool_down(T, t)
+        t = t + 1
+
     
 
 #     Prozeduresimulated annealing
@@ -107,12 +126,34 @@ def optimze(X_train, y_train, X_test, y_test, init_T=1000):
 
 # should temperature restrict the size of the neighborhood or just affect the chance with which a worse solution gets kept? (easier) 
 
+
+"""
+    Returns a solution in the neighborhood of the current solution
+"""
+def select_neighbor(solution, T):
+    return solution
+
 #TODO: implement and test different cooling functions
 """
     Return a lowered temperature
 """
 def cool_down(T, t):
     return T - 1
+
+"""
+    Termination condition for one 
+"""
+def termination_codition():
+    return True
+
+"""
+    Halting criterion for the whole algorithm
+    Returns True while start_time is at most 1 hour before the current time, otw return False
+"""
+def halting_criterion(start_time):
+    if time.time() - start_time < (1 * 60 * 60): #less than one hour has passed
+        return True
+    return False
 
 """
     Evaluates the goodness of a solution
