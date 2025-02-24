@@ -16,9 +16,10 @@ def compare_methods_for_ds(data_set_index):
     TPOT_setup.optimize(X_train, y_train, X_test, y_test)
 
     # 2nd
+    pycaret_setup.optimize(X_train, y_train, X_test, y_test)
 
     # plots
-
+    
 
 
 def main():

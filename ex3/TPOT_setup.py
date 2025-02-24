@@ -1,7 +1,6 @@
 
 # simple setup for utilizing TPOT. might just be done directly in comparison, maybe
-# TODO: set up so it works with our/specified data sets
-#   right now its just the basic initial test
+
 
 # below is example use
 from tpot import TPOTClassifier
@@ -13,7 +12,7 @@ from data_sets_util import load_ds
 
 
 # TODO: adjust so it can better/more easily be used for comparison
-def optimize(X_train, X_test, y_train, y_test):
+def optimize(X_train, y_train, X_test, y_test):
     pipeline_optimizer = TPOTClassifier(generations=5, population_size=20, cv=5,
                                         random_state=42, verbosity=2)
     pipeline_optimizer.fit(X_train, y_train)
