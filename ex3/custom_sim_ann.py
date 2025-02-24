@@ -15,7 +15,7 @@ from data_sets_util import load_ds
 
 
 
-def optimze(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
+def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
     curr_best = None
@@ -191,10 +191,10 @@ def main():
         try:
             ds_to_load = int(sys.argv[1])
         except ValueError:
-            print("Could not load specified data set. Ensure the parameter is on of the integers 1-4")
+            print("Could not load specified data set. Ensure the parameter is one of the integers 1-4")
 
     X_train, y_train, X_test, y_test = load_ds(ds_to_load)
-    optimze(X_train, y_train, X_test, y_test)
+    optimize(X_train, y_train, X_test, y_test)
 
 
 if __name__ == '__main__':
