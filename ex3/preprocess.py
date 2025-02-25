@@ -4,7 +4,6 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.impute import SimpleImputer
-from sklearn.feature_selection import VarianceThreshold
 
 # to load and preview data:
 
@@ -25,7 +24,7 @@ def load_and_preview_data(file_path, is_arff=False, file_type="train"):
         print("\nDataset Information:")
         print(df.info())
         print("\nMissing Values Count Before Handling are:")
-        print(df.isin(["?", "unknown", np.nan]).sum())
+        print(df.isin(["?", np.nan]).sum())
         return df
 
     except Exception as e:
@@ -36,7 +35,7 @@ def load_and_preview_data(file_path, is_arff=False, file_type="train"):
 
 def handle_missing_values(df):
     print("\nHandling Missing Values...")
-    df.replace(["?", "unknown"], np.nan, inplace=True)
+    df.replace(["?"], np.nan, inplace=True)
 
     print("\nMissing Values Count After Replacement (Before Imputation) are:")
     missing_counts = df.isnull().sum()
@@ -101,10 +100,7 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
     print(f"\nPreprocessing Dataset: {dataset_name}")
 
     # to define target column and ID column based on dataset:
-    if dataset_name == "Waveform":
-        target_column = df.columns[-1]  # last column
-        id_column = None  
-    elif dataset_name == "Wine":
+    if dataset_name == "Wine":
         target_column = df.columns[0]   # first column 
         id_column = None  
     elif dataset_name == "Sick":  # The 'Sick' column name in the sick dataset
@@ -137,7 +133,7 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
 
     # to Handle missing values:
 
-    if features.isnull().sum().sum() > 0 or features.isin(["?", "unknown"]).sum().sum() > 0:
+    if features.isnull().sum().sum() > 0 or features.isin(["?"]).sum().sum() > 0:
         features = handle_missing_values(features)
     else:
         print("No missing values detected. Skipping missing value handling.")
@@ -145,12 +141,6 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
     # to Encode categorical columns:
 
     features = encode_categorical(features, ordinal_columns=ordinal_columns)
-
-    # to Check the variance of features before applying VarianceThreshold:
-
-    print("\nVariance of features before applying VarianceThreshold:")
-    print(features.var().head())  
-
     
 
     # to attach the ID target columns again to datasets after preprocessing:
@@ -159,104 +149,46 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
     if id_column and id_column in df.columns:
         df_processed[id_column] = df[id_column]
     df_processed[target_column] = target 
-  
+   
     if dataset_name == "Wine":
         cols = [target_column] + [col for col in df_processed.columns if col != target_column]
         df_processed = df_processed[cols]
 
     elif dataset_name == "CongressionalVotingID":
-        cols = [id_column] + [target_column] + [col for col in df_processed.columns if col not in [id_column, target_column]]
+        cols = [target_column] + [col for col in df_processed.columns if col not in [target_column]]
         df_processed = df_processed[cols]
 
     # to finally Return the processed DataFrame:
 
     return df_processed
 
-# Function to plot comparison for missing values, encoding, and other aspects:
 
-def plot_comparison(before, after, dataset_name, save_dir):
-    fig, axs = plt.subplots(2, 2, figsize=(14, 12))  
 
-    # 1st Plot: Missing Values Before and After Preprocessing:
-    missing_before = before.isin(["?", "unknown", np.nan]).sum()
-    missing_after = after.isin(["?", "unknown", np.nan]).sum()
-
-    missing_before = missing_before[missing_before > 0]
-    missing_after = missing_after[missing_after > 0]
-
-    axs[0, 0].bar(missing_before.index, missing_before.values, alpha=0.7, color='skyblue', label='Before')
-    axs[0, 0].bar(missing_after.index, missing_after.values, alpha=0.7, color='orange', label='After')
-    axs[0, 0].set_title(f'{dataset_name} - Missing Values Before and After Preprocessing')
-    axs[0, 0].set_xlabel('Features')
-    axs[0, 0].set_ylabel('Missing Values Count')
-    axs[0, 0].legend()
-
-    # 2nd Plot: Number of Categorical and Numerical Columns Before and After Encoding:
-    categorical_before = before.select_dtypes(include=['object']).shape[1]
-    numerical_before = before.select_dtypes(include=[np.number]).shape[1]
-    categorical_after = after.select_dtypes(include=['object']).shape[1]
-    numerical_after = after.select_dtypes(include=[np.number]).shape[1]
-
-    axs[0, 1].bar(['Categorical', 'Numerical'], [categorical_before, numerical_before], alpha=0.7, color='skyblue', label='Before')
-    axs[0, 1].bar(['Categorical', 'Numerical'], [categorical_after, numerical_after], alpha=0.7, color='orange', label='After')
-    axs[0, 1].set_title(f'{dataset_name} - Categorical and Numerical Columns Before and After Encoding')
-    axs[0, 1].set_ylabel('Count')
-    axs[0, 1].legend()
-
-    axs[1, 0].axis('off')  
-
-    # 3rd Plot: Feature Count Before and After Preprocessing:
-    feature_before_count = before.shape[1] - 1 
-    feature_after_count = after.shape[1] - 1  
-    axs[1, 1].bar(['Before Preprocessing', 'After Preprocessing'], [feature_before_count, feature_after_count], alpha=0.7, color='skyblue')
-    axs[1, 1].set_title(f'{dataset_name} - Number of Features Before and After Preprocessing')
-    axs[1, 1].set_ylabel('Number of Features')
-
-    plt.tight_layout()
-
-    # to save the generated plots:
-
-    save_path = os.path.join(save_dir, f'{dataset_name}_comparison.png')
-    
-    plt.savefig(save_path)
-
-    plt.show()
-     
 # to Define file paths for datasets:
 
 datasets = {
-    "CongressionalVotingID": "./house-votes-84.csv",
     "Wine": "./wine.data",
-    "Waveform": "./dataset_60_waveform-5000.arff",
-    "Sick": "./dataset_38_sick.arff"
+    "Sick": "./dataset_38_sick.arff",
+    "CongressionalVotingID": "./house-votes-84.csv"
 }
 
 # Loading of datasets:
 
 congressional_voting = load_and_preview_data(datasets["CongressionalVotingID"], file_type="train")
 wine_data = load_and_preview_data(datasets["Wine"], file_type="full")
-waveform = load_and_preview_data(datasets["Waveform"], file_type="train")
 sick_data = load_and_preview_data(datasets["Sick"], is_arff=True, file_type="full")
 
 # for Preprocessing of datasets:
 
-waveform_after = preprocess_data(waveform.copy(), "Waveform")
 wine_after = preprocess_data(wine_data.copy(), "Wine")
 congressional_voting_after = preprocess_data(congressional_voting.copy(), "CongressionalVotingID")
 sick_data_after = preprocess_data(sick_data.copy(), "Sick")
 
 # to finally Save preprocessed datasets as csv files and the plots: 
 
-waveform_after.to_csv("waveform_preprocessed.csv", index=False)
 wine_after.to_csv("wine_preprocessed.csv", index=False)
 congressional_voting_after.to_csv("congressional_voting_preprocessed.csv", index=False)
 sick_data_after.to_csv("sick_data_preprocessed.csv", index=False)
 
 save_dir = "./"
 
-# to Plot the comparisons:
-
-plot_comparison(waveform, waveform_after, "Waveform", save_dir)
-plot_comparison(wine_data, wine_after, "Wine", save_dir)
-plot_comparison(congressional_voting, congressional_voting_after, "Congressional Voting ID", save_dir)
-plot_comparison(sick_data, sick_data_after, "Sick", save_dir)
