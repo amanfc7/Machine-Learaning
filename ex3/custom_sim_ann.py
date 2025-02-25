@@ -111,9 +111,9 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
     current_solution = init_solution_vect
     current_best = init_solution_vect
 
-    if ds_ind != 0:
+    if ds_index != 0:
         with open("custom_sim_ann.log", "a") as myfile: # should "a" be "w" instead to overwrite the log for each new run?
-            myfile.write("Started simulated annealing optimization for data set with index  %d\n\n" % ds_ind)
+            myfile.write("Started simulated annealing optimization for data set with index  %d\n\n" % ds_index)
 
     # now loop until th halting criterion is reached
     while (halting_criterion(start_time)): #one hour has not yet passed
@@ -141,7 +141,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
 
         T = cool_down(T, t)
         t = t + 1
-        # print(current_solution)
+        print(t)
 
         #report regularly about what is currently going on
         # could/should prbly also log this in a file or smt
