@@ -225,10 +225,10 @@ def plot_comparison(before, after, dataset_name, save_dir):
 # to Define file paths for datasets:
 
 datasets = {
-    "CongressionalVotingID": r"C:\Users\amanf\Downloads\ML_ex_3\house-votes-84.csv",
-    "Wine": r"C:\Users\amanf\Downloads\ML_ex_3\wine.data",
-    "Waveform": r"C:\Users\amanf\Downloads\ML_ex_3\dataset_60_waveform-5000.arff",
-    "Sick": r"C:\Users\amanf\Downloads\ML_ex_3\dataset_38_sick.arff",
+    "CongressionalVotingID": "./house-votes-84.csv",
+    "Wine": "./wine.data",
+    "Waveform": "./dataset_60_waveform-5000.arff",
+    "Sick": "./dataset_38_sick.arff"
 }
 
 # Loading of datasets:
@@ -247,12 +247,12 @@ sick_data_after = preprocess_data(sick_data.copy(), "Sick")
 
 # to finally Save preprocessed datasets as csv files and the plots: 
 
-waveform_after.to_csv(r"C:\Users\amanf\Downloads\ML_ex_3\csv\waveform_preprocessed.csv", index=False)
-wine_after.to_csv(r"C:\Users\amanf\Downloads\ML_ex_3\csv\wine_preprocessed.csv", index=False)
-congressional_voting_after.to_csv(r"C:\Users\amanf\Downloads\ML_ex_3\csv\congressional_voting_preprocessed.csv", index=False)
-sick_data_after.to_csv(r"C:\Users\amanf\Downloads\ML_ex_3\csv\sick_data_preprocessed.csv", index=False)
+waveform_after.to_csv("waveform_preprocessed.csv", index=False)
+wine_after.to_csv("wine_preprocessed.csv", index=False)
+congressional_voting_after.to_csv("congressional_voting_preprocessed.csv", index=False)
+sick_data_after.to_csv("sick_data_preprocessed.csv", index=False)
 
-save_dir = r"C:\Users\amanf\Downloads\ML_ex_3\preprocessing"
+save_dir = "./"
 
 # to Plot the comparisons:
 
