@@ -10,7 +10,7 @@ def compare_methods_for_ds(data_set_index):
 
     # TODO: run own implementation, TPOT and auto-sklearn on data sets, analyse & plot results
     # custom
-    custom_sim_ann.optimize(X_train, y_train, X_test, y_test)
+    found_clf = custom_sim_ann.optimize(X_train, y_train, X_test, y_test,ds_ind=data_set_index)
 
     # TPOT
     TPOT_setup.optimize(X_train, y_train, X_test, y_test, ds_index=data_set_index)

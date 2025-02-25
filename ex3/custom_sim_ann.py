@@ -19,7 +19,7 @@ from data_sets_util import load_ds
 
 
 
-def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
+def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind=0):
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
     
@@ -111,6 +111,10 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
     current_solution = init_solution_vect
     current_best = init_solution_vect
 
+    if ds_ind != 0:
+        with open("custom_sim_ann.log", "a") as myfile: # should "a" be "w" instead to overwrite the log for each new run?
+            myfile.write("Started simulated annealing optimization for data set with index  %d\n\n" % ds_ind)
+
     # now loop until th halting criterion is reached
     while (halting_criterion(start_time)): #one hour has not yet passed
         i = 0
@@ -140,10 +144,16 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
         # print(current_solution)
 
         #report regularly about what is currently going on
+        # could/should prbly also log this in a file or smt
         if t % 10 == 0:
-            print("t = %s" % t)
-            # print("Current best score: %f" % (curr_best_score / 100))
             clf = solution_vect_to_clf(current_best, all_classifiers_array)
+            with open("custom_sim_ann.log", "a") as myfile:
+                myfile.write("t = %s\n" % t)
+                myfile.write(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}\n')
+                myfile.write("Selected parameters:\n")
+                myfile.write(str(clf.get_params()))
+                myfile.write("\n\n")
+            print("t = %s" % t)
             print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
             print("Selected parameters:")
             print(clf.get_params())
@@ -153,6 +163,12 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
     print(f'Best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
     print("Selected parameters:")
     print(clf.get_params())
+    with open("custom_sim_ann.log", "a") as myfile:
+        myfile.write("Finished with the following result at t = %s\n" % t)
+        myfile.write(f'Best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}\n')
+        myfile.write("Selected parameters:\n")
+        myfile.write(str(clf.get_params()))
+
 
     # at the end, return the best classifier found
     return clf
