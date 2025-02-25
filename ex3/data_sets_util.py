@@ -28,25 +28,25 @@ def load_ds_1():
     X = df.drop(columns=[df.columns[-1]]) 
     y = df[df.columns[-1]]
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
-    return X_train, y_train, X_test, y_test
+    return (X_train, y_train, X_test, y_test)
 
 def load_ds_2():
     df = pd.read_csv('./congressional_voting_preprocessed.csv')  
     X = df.drop(columns=[df.columns[0]])  
     y = df[df.columns[0]] 
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
-    return X_train, y_train, X_test, y_test
+    return (X_train, y_train, X_test, y_test)
 
 def load_ds_3():
     df = pd.read_csv('./dataset_60_waveform-5000.csv')  
     X = df.drop(columns=[df.columns[-1]]) 
     y = df[df.columns[-1]] 
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
-    return X_train, y_train, X_test, y_test
+    return (X_train, y_train, X_test, y_test)
 
 def load_ds_4():
     df = pd.read_csv('./wine_preprocessed.csv')  
     X = df.drop(columns=[df.columns[0]])  
     y = df[df.columns[0]]  
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
-    return X_train, y_train, X_test, y_test
+    return (X_train, y_train, X_test, y_test)
