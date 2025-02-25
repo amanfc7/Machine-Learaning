@@ -213,7 +213,6 @@ def solution_vect_to_clf(solution_vect, solution_space):
 
 """
     Call the program with an int parameter to optimize for the data set specified by it
-    0 -
     1 - 
     2 - 
     3 -
@@ -226,7 +225,7 @@ def main():
         try:
             ds_to_load = int(sys.argv[1])
         except ValueError:
-            print("Could not load specified data set. Ensure the parameter is one of the integers 0-4")
+            print("Could not load specified data set. Ensure the parameter is one of the integers 1-4")
 
     X_train, y_train, X_test, y_test = load_ds(ds_to_load)
     optimize(X_train, y_train, X_test, y_test)
