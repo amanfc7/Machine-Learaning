@@ -1,8 +1,6 @@
 
 # simple setup for utilizing TPOT. might just be done directly in comparison, maybe
 
-
-# below is example use
 from tpot import TPOTClassifier
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split

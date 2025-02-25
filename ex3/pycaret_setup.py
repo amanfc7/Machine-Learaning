@@ -3,6 +3,7 @@
 
 
 from pycaret.classification import ClassificationExperiment
+import numpy as np
 
 import sys
 from data_sets_util import load_ds
@@ -11,14 +12,22 @@ from data_sets_util import load_ds
 # TODO: adjust so it can better/more easily be used for comparison
 def optimize(X_train, y_train, X_test, y_test):
 
-    # pycaret requires X and y to be in one table, with the target column specified. 
-    # TODO: Modify below accordingly
-    data = X_train
-    data_test = X_test
+    # pycaret requires X and y to be in one table, with the target column specified.
+    try: # more than one target (Multilabel / multioutput) - prbly not needed
+        number_of_targets = y_train.shape[1]
+        number_of_columns = X_train.shape[1]
+        target = np.array([i for i in range(number_of_columns, number_of_columns+number_of_targets)])
+    except IndexError:
+        target = -1
+        y_train_reshaped = np.expand_dims(y_train, axis=1)
+        y_test_reshaped = np.expand_dims(y_test, axis=1)
+
+    data = np.append(X_train, y_train_reshaped, axis=1)
+    data_test = np.append(X_test, y_test_reshaped, axis=1)
 
     s = ClassificationExperiment()
     ## s.setup(data, target = 'Purchase', session_id = 123)
-    s.setup(data, target = 0, test_data=data_test)
+    s.setup(data, target=target, test_data=data_test, index=False)
 
     # model training and selection
     best = s.compare_models()
