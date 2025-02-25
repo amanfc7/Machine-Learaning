@@ -124,16 +124,43 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
     Returns a solution in the neighborhood of the current solution
 """
 def select_neighbor(solution, all_classifiers_array, T):
+    c_1 = 5
+    c_2 = 100
+    selected_classifier_index = int(len(all_classifiers_array) * solution[0])
+
+    possible_clf_ind_list = [selected_classifier_index] * (c_1 + int(c_2/T))
+    if selected_classifier_index == 0: #we are at left border, add right neighbor twice
+        possible_clf_ind_list.append(1)
+    else:
+        possible_clf_ind_list.append(selected_classifier_index-1)
+    if selected_classifier_index == (len(all_classifiers_array)-1): #we are at the right border, add left neighbor twice
+        possible_clf_ind_list.append(selected_classifier_index-1)
+    else:
+        possible_clf_ind_list.append(selected_classifier_index+1)
+
+    # selected_classifier = all_classifiers_array[selected_classifier_index]
+    # chosen_hyperparameter_dict = {}
+    # for i, key in enumerate(selected_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
+    #     possible_values = selected_classifier[1][key]
+    #     solution_value_index = int(len(possible_values) * solution[i+1])
+    #     chosen_hyperparameter_dict[key] = possible_values[solution_value_index]
+
+
     # other classifiers should prbly be 'further away'
     return solution
 
-# TODO: might want to reheat below certain temperature (maybe 10?)
+
 """
     Return a lowered temperature
 """
 def cool_down(T, t):
+    min_T  = 10 #
+    reset_T = 100 #
     reduction_factor = 0.9995
-    return T * reduction_factor
+    new_T = T * reduction_factor
+    if new_T < min_T:
+        new_T = reset_T
+    return new_T
 
 #TODO: implement/test different conditions
 """
