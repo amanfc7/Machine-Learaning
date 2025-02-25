@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.neural_network import MLPClassifier
-from sklearn.ensemble import RandomForestClassifier
+# from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -85,7 +85,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
             "subsample": [0.5, 0.7, 1.0], 
             "max_features": [None, "sqrt", "log2"],
             "warm_start": [True, False],
-            "loss": ["deviance", "exponential"],  
+            # "loss": ["log_loss", "exponential"],  #TODO: exponential only works for binary classification, maybe remove this hyperparameter? Or only allow it dynamically for BinClassProblems
             "validation_fraction": [0.1, 0.2, 0.3],  
             "n_iter_no_change": [None, 10, 20],
             "tol": [1e-4, 1e-3, 1e-2], 
@@ -118,7 +118,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
         while (termination_condition(i)):
             i = i + 1
             # select a new solution v_n in the neighborhood of v_c ...
-            new_solution = select_neighbor(current_solution, all_classifiers_array, T)
+            new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng)
             # ... and evalute it
             new_score = eval_solution_adjusted(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
             # if it's better than v_c, update v_c
@@ -137,9 +137,17 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
 
         T = cool_down(T, t)
         t = t + 1
-        # print(t)
+        # print(current_solution)
 
-        #TODO: we might want to report regularly about what is currently going on
+        #report regularly about what is currently going on
+        if t % 10 == 0:
+            print("t = %s" % t)
+            # print("Current best score: %f" % (curr_best_score / 100))
+            clf = solution_vect_to_clf(current_best, all_classifiers_array)
+            print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
+            print("Selected parameters:")
+            print(clf.get_params())
+
 
     #TODO:
     # we want to return/do something with the best found solution
@@ -152,15 +160,17 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
 
 # should temperature restrict the size of the neighborhood or just affect the chance with which a worse solution gets kept? (easier) 
 
-#TODO: implement/test different neighborhood selectors
+
 """
     Returns a solution in the neighborhood of the current solution
 """
-def select_neighbor(solution, all_classifiers_array, T):
-    c_1 = 5
-    c_2 = 100
+def select_neighbor(solution, all_classifiers_array, T, rng):
     selected_classifier_index = int(len(all_classifiers_array) * solution[0])
+    new_solution = solution.copy()
 
+    # select a (possibly new) classifier, other classifiers should prbly be 'further away'
+    c_1 = 3 # a 'weight' for staying with the same classifier
+    c_2 = 100 # how much the temperature affects the chance of selecting a different classifier
     possible_clf_ind_list = [selected_classifier_index] * (c_1 + int(c_2/T))
     if selected_classifier_index == 0: #we are at left border, add right neighbor twice
         possible_clf_ind_list.append(1)
@@ -171,16 +181,52 @@ def select_neighbor(solution, all_classifiers_array, T):
     else:
         possible_clf_ind_list.append(selected_classifier_index+1)
 
-    # selected_classifier = all_classifiers_array[selected_classifier_index]
-    # chosen_hyperparameter_dict = {}
-    # for i, key in enumerate(selected_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
-    #     possible_values = selected_classifier[1][key]
+    new_clf_index = rng.choice(possible_clf_ind_list)
+    # transform back into our 0-1 range with a little extra added to fall right in the middle of the range for the index
+    new_solution[0] = new_clf_index / len(all_classifiers_array) + 1 / (2 * len(all_classifiers_array))
+    # new_solution[0] = new_clf_index / len(all_classifiers_array) # w/o centering, might cause unwanted parameter shifts if switching back and forth between clfs
+
+    # update the remaining part of the solution vector where appropriate
+    new_classifier = all_classifiers_array[new_clf_index]
+    # if selected_classifier_index != new_clf_index:
+    #     chose_neighbor = True
+    # else:
+    #     chose_neighbor = False
+    for i, key in enumerate(new_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
+        possible_values = new_classifier[1][key]
+        # if int(0.1 * T) > 1:
+        #     choices_steps_to_add = [i+1 for i in range(int(0.1 * T))]
+        # else:
+        #     choices_steps_to_add = [1]
+        # if not chose_neighbor and i+1==len(new_classifier[1].keys()): #last chance to move and chose a neighbor
+        #     pass
+        # else: #already chose some different values, value does not need to change
+        #     choices_steps_to_add.append(0)
+
+        if int(0.1 * T) > 1: #even at T = 10 we want at least one step, possibly more at higher temperatures
+            choices_steps_to_add = [i for i in range(int(0.1 * T)+1)]
+        else:
+            choices_steps_to_add = [0, 1]
+        steps_to_add = rng.choice(choices_steps_to_add)
+        steps_to_add = steps_to_add * rng.choice([-1, 1]) # subtract or add
+        # if steps_to_add != 0:
+        #     chose_neighbor = True
+        value_to_add = steps_to_add / len(possible_values) # shift in to our range
+
+        new_solution_value = solution[i+1] + value_to_add
+        # value to small, should be at least 0
+        if new_solution_value < 0:
+            new_solution_value = 0
+        # value to large, need largest valid value under 1
+        if new_solution_value >= 1:
+            new_solution_value = 1 - 1 / (2 * len(possible_values))
+            # new_solution_value = 1 - 1 / len(possible_values) # w/o centering
+        new_solution[i+1] = new_solution_value
+        
     #     solution_value_index = int(len(possible_values) * solution[i+1])
     #     chosen_hyperparameter_dict[key] = possible_values[solution_value_index]
 
-
-    # other classifiers should prbly be 'further away'
-    return solution
+    return new_solution
 
 
 """
@@ -230,6 +276,7 @@ def eval_solution_adjusted(solution_clf, X_train, y_train, X_test, y_test):
 """
 def solution_vect_to_clf(solution_vect, solution_space):
     selected_classifier_index = int(len(solution_space) * solution_vect[0])
+    # print(selected_classifier_index)
     selected_classifier = solution_space[selected_classifier_index]
     chosen_hyperparameter_dict = {}
     for i, key in enumerate(selected_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
