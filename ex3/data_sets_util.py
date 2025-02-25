@@ -3,10 +3,6 @@
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
-# import numpy as np
-
-
-
 def load_ds(data_set_to_load):
     match data_set_to_load:
         case 1:

@@ -109,6 +109,8 @@ def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
         t = t + 1
         # print(t)
 
+        #TODO: we might want to report regularly about what is currently going on
+
     #TODO:
     # we want to return/do something with the best found solution
     print(current_best)
@@ -125,6 +127,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
     Returns a solution in the neighborhood of the current solution
 """
 def select_neighbor(solution, all_classifiers_array, T):
+    # other classifiers should prbly be 'further away'
     return solution
 
 #TODO: implement and test different cooling functions
@@ -159,21 +162,19 @@ def eval_solution(solution_clf, X_train, y_train, X_test, y_test):
     solution_clf.fit(X_train, y_train)
     return solution_clf.score(X_test, y_test)
 
-#TODO: double check if this makes sense
 """
-    turns a solution vector into a classifier object and returns it
+    Turns a solution vector into a classifier object and returns it
 """
 def solution_vect_to_clf(solution_vect, solution_space):
     selected_classifier_index = int(len(solution_space) * solution_vect[0])
     selected_classifier = solution_space[selected_classifier_index]
     chosen_hyperparameter_dict = {}
-    for i, key in enumerate(selected_classifier[1].keys()):
+    for i, key in enumerate(selected_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
         possible_values = selected_classifier[1][key]
         solution_value_index = int(len(possible_values) * solution_vect[i+1])
         chosen_hyperparameter_dict[key] = possible_values[solution_value_index]
 
-    
-    clf = selected_classifier[0](**chosen_hyperparameter_dict)
+    clf = selected_classifier[0](**chosen_hyperparameter_dict) # build selected classifier by passing hyperparameters as a dict
     return clf
 
 

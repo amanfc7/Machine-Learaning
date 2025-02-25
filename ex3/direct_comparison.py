@@ -13,7 +13,7 @@ def compare_methods_for_ds(data_set_index):
     custom_sim_ann.optimize(X_train, y_train, X_test, y_test)
 
     # TPOT
-    TPOT_setup.optimize(X_train, y_train, X_test, y_test)
+    TPOT_setup.optimize(X_train, y_train, X_test, y_test, ds_index=data_set_index)
 
     # 2nd
     pycaret_setup.optimize(X_train, y_train, X_test, y_test)
