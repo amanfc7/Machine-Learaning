@@ -15,13 +15,11 @@ from data_sets_util import load_ds
 
 
 
-def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
+def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
-    curr_best = None
-    curr_best_score = 0.
     
-    classifier_0 =  [
+    classifier_1 =  [
         MLPClassifier,
         { # hyperparameter dict
             "activation": ('identity', 'logistic', 'tanh', 'relu'),
@@ -33,35 +31,35 @@ def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
     ]
 
     #TODO: second classifier
-    classifier_1 =  [
-        RandomForestClassifier,
-        { # hyperparameter dict
-            
-        }
-    ]
-    #TODO: third classifier
     classifier_2 =  [
         RandomForestClassifier,
         { # hyperparameter dict
             
         }
     ]
-    #TODO: fourth classifier
+    #TODO: third classifier
     classifier_3 =  [
         RandomForestClassifier,
         { # hyperparameter dict
             
         }
     ]
-    #TODO: fifth classifier
+    #TODO: fourth classifier
     classifier_4 =  [
         RandomForestClassifier,
         { # hyperparameter dict
             
         }
     ]
+    #TODO: fifth classifier
+    classifier_5 =  [
+        RandomForestClassifier,
+        { # hyperparameter dict
+            
+        }
+    ]
 
-    all_classifiers_array = [classifier_0, classifier_1, classifier_2, classifier_3, classifier_4]
+    all_classifiers_array = [classifier_1, classifier_2, classifier_3, classifier_4, classifier_5]
     max_hp_number = max([len(classifier[1].keys()) for classifier in all_classifiers_array])
     
     # time stamp = 0
@@ -71,11 +69,10 @@ def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
            
 
     # select random initial current solution v_c
-    #TODO: seems fine, check again
     init_solution_vect = rng.random(1+max_hp_number)
     clf = solution_vect_to_clf(init_solution_vect, all_classifiers_array)
     # Evalutate v_c
-    curr_best_score = eval_solution(clf, X_train, y_train, X_test, y_test)
+    curr_best_score = eval_solution_adjusted(clf, X_train, y_train, X_test, y_test)
     curr_score = curr_best_score
 
     current_solution = init_solution_vect
@@ -90,7 +87,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
             # select a new solution v_n in the neighborhood of v_c ...
             new_solution = select_neighbor(current_solution, all_classifiers_array, T)
             # ... and evalute it
-            new_score = eval_solution(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
+            new_score = eval_solution_adjusted(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
             # if it's better than v_c, update v_c
             if curr_score < new_score:
                 current_solution = new_solution
@@ -130,21 +127,21 @@ def select_neighbor(solution, all_classifiers_array, T):
     # other classifiers should prbly be 'further away'
     return solution
 
-#TODO: implement and test different cooling functions
+# TODO: might want to reheat below certain temperature (maybe 10?)
 """
     Return a lowered temperature
 """
 def cool_down(T, t):
-    reduction_factor = 0.8
+    reduction_factor = 0.9995
     return T * reduction_factor
-    # return T - 1
 
 #TODO: implement/test different conditions
 """
     Termination condition for one time step
 """
 def termination_condition(i):
-    return i < 10
+    max_iterations = 10
+    return i < max_iterations
 
 """
     Halting criterion for the whole algorithm
@@ -161,6 +158,12 @@ def halting_criterion(start_time):
 def eval_solution(solution_clf, X_train, y_train, X_test, y_test):
     solution_clf.fit(X_train, y_train)
     return solution_clf.score(X_test, y_test)
+
+"""
+    Trains the classifier on the provided data and evalutes it, then scales by 100 the result for a wider range
+"""
+def eval_solution_adjusted(solution_clf, X_train, y_train, X_test, y_test):
+    return eval_solution(solution_clf, X_train, y_train, X_test, y_test) * 100
 
 """
     Turns a solution vector into a classifier object and returns it
