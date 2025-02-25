@@ -1,5 +1,6 @@
-
-# TODO: loads and provides data sets, does preprocessing
+# Preprocessing is done by preprocess.py
+# loads and provides preprocessed data sets
+import pandas as pd
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
@@ -23,13 +24,29 @@ def load_dummy_ds():
     return (X_train, y_train, X_test, y_test)
 
 def load_ds_1():
-    return load_dummy_ds() #TODO: replace with proper code for loading data set 1 
+    df = pd.read_csv('./sick_data_preprocessed.csv') 
+    X = df.drop(columns=[df.columns[-1]]) 
+    y = df[df.columns[-1]]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
+    return X_train, y_train, X_test, y_test
 
 def load_ds_2():
-    return load_dummy_ds() #TODO: replace with proper code for loading data set 2
+    df = pd.read_csv('./congressional_voting_preprocessed.csv')  
+    X = df.drop(columns=[df.columns[0]])  
+    y = df[df.columns[0]] 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
+    return X_train, y_train, X_test, y_test
 
 def load_ds_3():
-    return load_dummy_ds() #TODO: replace with proper code for loading data set 3 
+    df = pd.read_csv('./dataset_60_waveform-5000.csv')  
+    X = df.drop(columns=[df.columns[-1]]) 
+    y = df[df.columns[-1]] 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
+    return X_train, y_train, X_test, y_test
 
 def load_ds_4():
-    return load_dummy_ds() #TODO: replace with proper code for loading data set 4 
+    df = pd.read_csv('./wine_preprocessed.csv')  
+    X = df.drop(columns=[df.columns[0]])  
+    y = df[df.columns[0]]  
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.75, test_size=0.25)
+    return X_train, y_train, X_test, y_test
