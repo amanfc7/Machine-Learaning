@@ -115,7 +115,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
     while (halting_criterion(start_time)): #one hour has not yet passed
         i = 0
         # loop until the termination condition for the current time step has been reached
-        while (termination_condition(i)):
+        while (termination_condition(i, T)):
             i = i + 1
             # select a new solution v_n in the neighborhood of v_c ...
             new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng)
@@ -148,17 +148,19 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
             print("Selected parameters:")
             print(clf.get_params())
 
+    clf = solution_vect_to_clf(current_best, all_classifiers_array)
+    print("Finished with the following result:")
+    print(f'Best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
+    print("Selected parameters:")
+    print(clf.get_params())
 
-    #TODO:
-    # we want to return/do something with the best found solution
-    print(current_best)
-    print(curr_best_score)
+    # at the end, return the best classifier found
+    return clf
 
 
 #idea: encode algs in vectors of length 1+[max hyperparameters to tone over all algs], where the first component indicates the alg and the others indicate the hyperparameter. If chosen alg has less than max hyperparameters, ignore excess 
 #       if some hyperparameters have higher ranges, will probably need to round for lower --> just pick values from 0 to 1 and then scale to range!
 
-# should temperature restrict the size of the neighborhood or just affect the chance with which a worse solution gets kept? (easier) 
 
 
 """
@@ -222,9 +224,6 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
             new_solution_value = 1 - 1 / (2 * len(possible_values))
             # new_solution_value = 1 - 1 / len(possible_values) # w/o centering
         new_solution[i+1] = new_solution_value
-        
-    #     solution_value_index = int(len(possible_values) * solution[i+1])
-    #     chosen_hyperparameter_dict[key] = possible_values[solution_value_index]
 
     return new_solution
 
@@ -241,11 +240,11 @@ def cool_down(T, t):
         new_T = reset_T
     return new_T
 
-#TODO: implement/test different conditions
 """
-    Termination condition for one time step
+    Termination condition for one time step.
+    Simply returns false once i is large enough
 """
-def termination_condition(i):
+def termination_condition(i, T):
     max_iterations = 10
     return i < max_iterations
 
@@ -276,7 +275,7 @@ def eval_solution_adjusted(solution_clf, X_train, y_train, X_test, y_test):
 """
 def solution_vect_to_clf(solution_vect, solution_space):
     selected_classifier_index = int(len(solution_space) * solution_vect[0])
-    # print(selected_classifier_index)
+
     selected_classifier = solution_space[selected_classifier_index]
     chosen_hyperparameter_dict = {}
     for i, key in enumerate(selected_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
