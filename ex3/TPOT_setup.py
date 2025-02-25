@@ -10,9 +10,9 @@ from data_sets_util import load_ds
 
 
 # TODO: adjust so it can better/more easily be used for comparison
-def optimize(X_train, y_train, X_test, y_test, ds_index=1):
+def optimize(X_train, y_train, X_test, y_test, rng_seed=42, ds_index=1):
     pipeline_optimizer = TPOTClassifier(generations=5, population_size=20, cv=5,
-                                        random_state=42, verbosity=2)
+                                        random_state=rng_seed, verbosity=2, max_time_mins=60.)
     pipeline_optimizer.fit(X_train, y_train)
     print(pipeline_optimizer.score(X_test, y_test))
     pipeline_optimizer.export('tpot_exported_pipeline_for_ds_%d.py' % ds_index)

@@ -152,11 +152,13 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
                 myfile.write(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}\n')
                 myfile.write("Selected parameters:\n")
                 myfile.write(str(clf.get_params()))
+                myfile.write("Elapsed time since start: %d" % (time.time() - start_time))
                 myfile.write("\n\n")
             print("t = %s" % t)
             print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
             print("Selected parameters:")
             print(clf.get_params())
+            print("Elapsed time since start: %d" % (time.time() - start_time))
 
     clf = solution_vect_to_clf(current_best, all_classifiers_array)
     print("Finished with the following result:")
