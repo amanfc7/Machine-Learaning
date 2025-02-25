@@ -19,7 +19,7 @@ from data_sets_util import load_ds
 
 
 
-def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind=0):
+def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_index=0):
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
     
@@ -305,10 +305,10 @@ def solution_vect_to_clf(solution_vect, solution_space):
 
 """
     Call the program with an int parameter to optimize for the data set specified by it
-    1 - 
-    2 - 
-    3 -
-    4 -
+    1 - Sick
+    2 - Congressional voting
+    3 - Waveform
+    4 - Wine
 """
 def main():
     ds_to_load = 1

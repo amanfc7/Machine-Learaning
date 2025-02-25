@@ -45,6 +45,8 @@ def optimize(X_train, y_train, X_test, y_test):
     # save model
     s.save_model(best, 'best_pipeline')
 
+    return best
+
 
 
 def main():

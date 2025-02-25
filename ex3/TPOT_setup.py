@@ -16,6 +16,7 @@ def optimize(X_train, y_train, X_test, y_test, ds_index=1):
     pipeline_optimizer.fit(X_train, y_train)
     print(pipeline_optimizer.score(X_test, y_test))
     pipeline_optimizer.export('tpot_exported_pipeline_for_ds_%d.py' % ds_index)
+    return pipeline_optimizer
 
 
 def main():
