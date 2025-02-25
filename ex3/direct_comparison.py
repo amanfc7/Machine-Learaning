@@ -15,7 +15,7 @@ def compare_methods_for_ds(data_set_index):
     optimzer = TPOT_setup.optimize(X_train, y_train, X_test, y_test, ds_index=data_set_index)
 
     # 2nd
-    best = pycaret_setup.optimize(X_train, y_train, X_test, y_test)
+    best = pycaret_setup.optimize(X_train, y_train, X_test, y_test, ds_index=data_set_index)
 
     # custom
     found_clf = custom_sim_ann.optimize(X_train, y_train, X_test, y_test,ds_index=data_set_index)

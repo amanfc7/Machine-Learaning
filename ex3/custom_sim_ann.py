@@ -20,7 +20,7 @@ from data_sets_util import load_ds
 
 
 def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_index=0):
-    log_file_name = "custom_sim_ann_for_ds_" + ds_index + ".log"
+    log_file_name = "custom_sim_ann_for_ds_" + str(ds_index) + ".log"
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
     
@@ -142,24 +142,25 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
 
         T = cool_down(T, t)
         t = t + 1
-        print(t)
+        # print(t)
 
         #report regularly about what is currently going on
         # could/should prbly also log this in a file or smt
         if t % 10 == 0:
             clf = solution_vect_to_clf(current_best, all_classifiers_array)
+            mins_since_start = (time.time() - start_time) / 60
             with open(log_file_name, "a") as myfile:
                 myfile.write("t = %s\n" % t)
                 myfile.write(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}\n')
                 myfile.write("Selected parameters:\n")
                 myfile.write(str(clf.get_params()))
-                myfile.write("Elapsed time since start: %d" % (time.time() - start_time))
+                myfile.write("Elapsed mins since start: %d" % (mins_since_start))
                 myfile.write("\n\n")
             print("t = %s" % t)
             print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
             print("Selected parameters:")
             print(clf.get_params())
-            print("Elapsed time since start: %d" % (time.time() - start_time))
+            print("Elapsed mins since start: %d" % (mins_since_start))
 
     clf = solution_vect_to_clf(current_best, all_classifiers_array)
     print("Finished with the following result:")
