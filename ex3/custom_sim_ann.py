@@ -1,25 +1,31 @@
 import numpy as np
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
 
 import sys, time
 
 from data_sets_util import load_ds
 
 # TODO: 5+ ML algs
-# 1. MLP
-# 2. DT and/or Random Forest
-# 3. The GPC?/TBD
-# 4. TBD
-# 5. TBD
+# 0. MLP
+# 1. KNC 
+# 2. SVC
+# 3. DTC
+# 4. GBC
 
 
 
-def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
+def optimize(X_train, y_train, X_test, y_test, init_T=1000, rng_seed=None):
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
+    curr_best = None
+    curr_best_score = 0.
     
-    classifier_1 =  [
+    classifier_0 =  [
         MLPClassifier,
         { # hyperparameter dict
             "activation": ('identity', 'logistic', 'tanh', 'relu'),
@@ -30,36 +36,65 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
         }
     ]
 
-    #TODO: second classifier
-    classifier_2 =  [
-        RandomForestClassifier,
+    classifier_1 =  [
+        KNeighborsClassifier,
         { # hyperparameter dict
-            
-        }
-    ]
-    #TODO: third classifier
-    classifier_3 =  [
-        RandomForestClassifier,
-        { # hyperparameter dict
-            
-        }
-    ]
-    #TODO: fourth classifier
-    classifier_4 =  [
-        RandomForestClassifier,
-        { # hyperparameter dict
-            
-        }
-    ]
-    #TODO: fifth classifier
-    classifier_5 =  [
-        RandomForestClassifier,
-        { # hyperparameter dict
-            
+            "n_neighbors": tuple(range(1, 21)), 
+            "weights": ("uniform", "distance"), 
+            "algorithm": ("auto", "ball_tree", "kd_tree", "brute"), 
+            "leaf_size": tuple(range(10, 51, 5)),
+            "p": (1, 2),
+            "metric": ("euclidean", "manhattan", "chebyshev", "minkowski"), 
         }
     ]
 
-    all_classifiers_array = [classifier_1, classifier_2, classifier_3, classifier_4, classifier_5]
+    classifier_2 =  [
+        SVC,
+        { # hyperparameter dict
+            "C": np.logspace(-3, 3, 10),  
+            "kernel": ("linear", "poly", "rbf", "sigmoid"), 
+            "degree": tuple(range(2, 6)),  
+            "gamma": ("scale", "auto"), 
+            "coef0": np.linspace(0, 1, 5),  
+            "shrinking": (True, False), 
+            "probability": (True, False), 
+            "class_weight": (None, "balanced"), 
+        }
+    ]
+
+
+    classifier_3 =  [
+        DecisionTreeClassifier,
+        { # hyperparameter dict
+            "criterion": ("gini", "entropy", "log_loss"),  
+            "splitter": ("best", "random"), 
+            "max_depth": tuple(range(3, 21, 3)), 
+            "min_samples_split": tuple(range(2, 21)), 
+            "min_samples_leaf": tuple(range(1, 21)), 
+            "max_features": ("sqrt", "log2", None), 
+            "class_weight": (None, "balanced"),
+        }
+    ]
+
+    classifier_4 =  [
+        GradientBoostingClassifier,
+        { # hyperparameter dict
+            "n_estimators": [50, 100, 200, 300],  
+            "learning_rate": np.logspace(-3, 0, 4), 
+            "max_depth": [3, 5, 7, 10],  
+            "min_samples_split": [2, 5, 10],  
+            "min_samples_leaf": [1, 2, 5], 
+            "subsample": [0.5, 0.7, 1.0], 
+            "max_features": [None, "sqrt", "log2"],
+            "warm_start": [True, False],
+            "loss": ["deviance", "exponential"],  
+            "validation_fraction": [0.1, 0.2, 0.3],  
+            "n_iter_no_change": [None, 10, 20],
+            "tol": [1e-4, 1e-3, 1e-2], 
+        }
+    ]
+
+    all_classifiers_array = [classifier_0, classifier_1, classifier_2, classifier_3, classifier_4]
     max_hp_number = max([len(classifier[1].keys()) for classifier in all_classifiers_array])
     
     # time stamp = 0
@@ -69,10 +104,11 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
            
 
     # select random initial current solution v_c
+    #TODO: seems fine, check again
     init_solution_vect = rng.random(1+max_hp_number)
     clf = solution_vect_to_clf(init_solution_vect, all_classifiers_array)
     # Evalutate v_c
-    curr_best_score = eval_solution_adjusted(clf, X_train, y_train, X_test, y_test)
+    curr_best_score = eval_solution(clf, X_train, y_train, X_test, y_test)
     curr_score = curr_best_score
 
     current_solution = init_solution_vect
@@ -87,7 +123,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None):
             # select a new solution v_n in the neighborhood of v_c ...
             new_solution = select_neighbor(current_solution, all_classifiers_array, T)
             # ... and evalute it
-            new_score = eval_solution_adjusted(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
+            new_score = eval_solution(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
             # if it's better than v_c, update v_c
             if curr_score < new_score:
                 current_solution = new_solution
@@ -149,11 +185,16 @@ def select_neighbor(solution, all_classifiers_array, T):
     # other classifiers should prbly be 'further away'
     return solution
 
+<<<<<<< HEAD
 
+=======
+#TODO: implement and test different cooling functions
+>>>>>>> 70c4685f404f9d763a8a622facbb27e6579a70c7
 """
     Return a lowered temperature
 """
 def cool_down(T, t):
+<<<<<<< HEAD
     min_T  = 10 #
     reset_T = 100 #
     reduction_factor = 0.9995
@@ -161,14 +202,18 @@ def cool_down(T, t):
     if new_T < min_T:
         new_T = reset_T
     return new_T
+=======
+    reduction_factor = 0.8
+    return T * reduction_factor
+    # return T - 1
+>>>>>>> 70c4685f404f9d763a8a622facbb27e6579a70c7
 
 #TODO: implement/test different conditions
 """
     Termination condition for one time step
 """
 def termination_condition(i):
-    max_iterations = 10
-    return i < max_iterations
+    return i < 10
 
 """
     Halting criterion for the whole algorithm
@@ -185,12 +230,6 @@ def halting_criterion(start_time):
 def eval_solution(solution_clf, X_train, y_train, X_test, y_test):
     solution_clf.fit(X_train, y_train)
     return solution_clf.score(X_test, y_test)
-
-"""
-    Trains the classifier on the provided data and evalutes it, then scales by 100 the result for a wider range
-"""
-def eval_solution_adjusted(solution_clf, X_train, y_train, X_test, y_test):
-    return eval_solution(solution_clf, X_train, y_train, X_test, y_test) * 100
 
 """
     Turns a solution vector into a classifier object and returns it
