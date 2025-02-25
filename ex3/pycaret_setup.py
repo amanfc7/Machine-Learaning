@@ -59,7 +59,7 @@ def main():
             print("Could not load specified data set. Ensure the parameter is one of the integers 1-4")
 
     X_train, y_train, X_test, y_test = load_ds(ds_to_load)
-    optimize(X_train, y_train, X_test, y_test)
+    optimize(X_train, y_train, X_test, y_test, ds_index=ds_to_load)
 
 
 if __name__ == '__main__':
