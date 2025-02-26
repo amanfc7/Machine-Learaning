@@ -17,6 +17,85 @@ from data_sets_util import load_ds
 # 4. DTC
 # 5. GBC
 
+classifier_1 =  [
+    MLPClassifier,
+    { # hyperparameter dict
+        "activation": ('identity', 'logistic', 'tanh', 'relu'),
+        "solver": ('lbfgs', 'sgd', 'adam'),
+        "hidden_layer_sizes": ((15,2), (100,), (15,15), (20,3), (50, 50), (20, 20, 20)), # --> maybe make that 'continious'
+        "alpha": np.logspace(-10, 4, 15), # --> maybe make that 'continious'
+        # "max_iter": (200, 300),
+    }
+]
+
+classifier_2 =  [
+    KNeighborsClassifier,
+    { # hyperparameter dict
+        "n_neighbors": tuple(range(1, 21)), 
+        "weights": ("uniform", "distance"), 
+        "algorithm": ("auto", "ball_tree", "kd_tree", "brute"), 
+        "leaf_size": tuple(range(10, 51, 5)),
+        "p": (1, 2),
+        "metric": ("euclidean", "manhattan", "chebyshev", "minkowski"), 
+    }
+]
+
+classifier_3 =  [
+    SVC,
+    { # hyperparameter dict
+        "C": np.logspace(-3, 3, 10),  
+        # "kernel": ("linear", "poly", "rbf", "sigmoid"), 
+        "kernel": ("poly", "rbf", "sigmoid"), 
+        "degree": tuple(range(2, 6)),  
+        "gamma": ("scale", "auto"), 
+        "coef0": np.linspace(0, 1, 5),  
+        "shrinking": (True, False), 
+        # "probability": (True, False), # setting to True has some problems
+        "class_weight": (None, "balanced"), 
+        "cache_size": [1000] #for faster run time
+    }
+]
+
+
+classifier_4 =  [
+    DecisionTreeClassifier,
+    { # hyperparameter dict
+        "criterion": ("gini", "entropy", "log_loss"),  
+        "splitter": ("best", "random"), 
+        "max_depth": tuple(range(3, 21, 3)), 
+        "min_samples_split": tuple(range(2, 21)), 
+        "min_samples_leaf": tuple(range(1, 21)), 
+        "max_features": ("sqrt", "log2", None), 
+        "class_weight": (None, "balanced"),
+    }
+]
+
+classifier_5 =  [
+    GradientBoostingClassifier,
+    { # hyperparameter dict
+        "n_estimators": [50, 100, 200, 300],  
+        "learning_rate": np.logspace(-3, 0, 4), 
+        "max_depth": [3, 5, 7, 10],  
+        "min_samples_split": [2, 5, 10],  
+        "min_samples_leaf": [1, 2, 5], 
+        "subsample": [0.5, 0.7, 1.0], 
+        "max_features": [None, "sqrt", "log2"],
+        "warm_start": [True, False],
+        # "loss": ["log_loss", "exponential"],  #TODO: exponential only works for binary classification, maybe remove this hyperparameter? Or only allow it dynamically for BinClassProblems
+        "validation_fraction": [0.1, 0.2, 0.3],  
+        "n_iter_no_change": [None, 10, 20],
+        "tol": [1e-4, 1e-3, 1e-2], 
+    }
+]
+
+# classifier_6 = [
+#     RandomForestClassifier,
+#     {
+
+#     }
+# ]
+
+all_classifiers_array = [classifier_1, classifier_2, classifier_3, classifier_4, classifier_5]
 
 """
 
@@ -36,85 +115,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
     
-    classifier_1 =  [
-        MLPClassifier,
-        { # hyperparameter dict
-            "activation": ('identity', 'logistic', 'tanh', 'relu'),
-            "solver": ('lbfgs', 'sgd', 'adam'),
-            "hidden_layer_sizes": ((15,2), (100,), (15,15), (20,3), (50, 50), (20, 20, 20)), # --> maybe make that 'continious'
-            "alpha": np.logspace(-10, 4, 15), # --> maybe make that 'continious'
-            # "max_iter": (200, 300),
-        }
-    ]
 
-    classifier_2 =  [
-        KNeighborsClassifier,
-        { # hyperparameter dict
-            "n_neighbors": tuple(range(1, 21)), 
-            "weights": ("uniform", "distance"), 
-            "algorithm": ("auto", "ball_tree", "kd_tree", "brute"), 
-            "leaf_size": tuple(range(10, 51, 5)),
-            "p": (1, 2),
-            "metric": ("euclidean", "manhattan", "chebyshev", "minkowski"), 
-        }
-    ]
-
-    classifier_3 =  [
-        SVC,
-        { # hyperparameter dict
-            "C": np.logspace(-3, 3, 10),  
-            # "kernel": ("linear", "poly", "rbf", "sigmoid"), 
-            "kernel": ("poly", "rbf", "sigmoid"), 
-            "degree": tuple(range(2, 6)),  
-            "gamma": ("scale", "auto"), 
-            "coef0": np.linspace(0, 1, 5),  
-            "shrinking": (True, False), 
-            # "probability": (True, False), # setting to True has some problems
-            "class_weight": (None, "balanced"), 
-            "cache_size": [1000] #for faster run time
-        }
-    ]
-
-
-    classifier_4 =  [
-        DecisionTreeClassifier,
-        { # hyperparameter dict
-            "criterion": ("gini", "entropy", "log_loss"),  
-            "splitter": ("best", "random"), 
-            "max_depth": tuple(range(3, 21, 3)), 
-            "min_samples_split": tuple(range(2, 21)), 
-            "min_samples_leaf": tuple(range(1, 21)), 
-            "max_features": ("sqrt", "log2", None), 
-            "class_weight": (None, "balanced"),
-        }
-    ]
-
-    classifier_5 =  [
-        GradientBoostingClassifier,
-        { # hyperparameter dict
-            "n_estimators": [50, 100, 200, 300],  
-            "learning_rate": np.logspace(-3, 0, 4), 
-            "max_depth": [3, 5, 7, 10],  
-            "min_samples_split": [2, 5, 10],  
-            "min_samples_leaf": [1, 2, 5], 
-            "subsample": [0.5, 0.7, 1.0], 
-            "max_features": [None, "sqrt", "log2"],
-            "warm_start": [True, False],
-            # "loss": ["log_loss", "exponential"],  #TODO: exponential only works for binary classification, maybe remove this hyperparameter? Or only allow it dynamically for BinClassProblems
-            "validation_fraction": [0.1, 0.2, 0.3],  
-            "n_iter_no_change": [None, 10, 20],
-            "tol": [1e-4, 1e-3, 1e-2], 
-        }
-    ]
-
-    # classifier_6 = [
-    #     RandomForestClassifier,
-    #     {
-
-    #     }
-    # ]
-
-    all_classifiers_array = [classifier_1, classifier_2, classifier_3, classifier_4, classifier_5]
     max_hp_number = max([len(classifier[1].keys()) for classifier in all_classifiers_array])
     
     # time stamp = 0
@@ -125,7 +126,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
 
    # select random initial current solution v_c
     init_solution_vect = rng.random(1+max_hp_number)
-    clf = solution_vect_to_clf(init_solution_vect, all_classifiers_array)
+    clf = solution_vect_to_clf(init_solution_vect)
     # Evalutate v_c
     curr_best_score = eval_solution_adjusted(clf, X_train, y_train, X_test, y_test)
     curr_score = curr_best_score
@@ -148,9 +149,9 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
         while (termination_condition(i, T, max_it_per_t)):
             i = i + 1
             # select a new solution v_n in the neighborhood of v_c ...
-            new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng, c_1, c_2)
+            new_solution = select_neighbor(current_solution, T, rng, c_1, c_2)
             # ... and evalute it
-            clf = solution_vect_to_clf(new_solution, all_classifiers_array)
+            clf = solution_vect_to_clf(new_solution)
             if verbosity > 1: 
                 print(f'Training an instance of the {str(type(clf)).split(".")[-1][:-2]}\n')
                 if type(clf) == SVC: print(clf.get_params())
@@ -176,7 +177,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
         #report regularly about what is currently going on, also log it
         if time.time() - last_log_time >= 60:
             last_log_time = time.time()
-            clf = solution_vect_to_clf(current_best, all_classifiers_array)
+            clf = solution_vect_to_clf(current_best)
             mins_since_start = (time.time() - start_time) / 60.
             with open(log_file_name, "a") as myfile:
                 myfile.write("t = %s, T = %f\n" % (t, T))
@@ -185,7 +186,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
                 myfile.write(str(clf.get_params()))
                 myfile.write("\nElapsed mins since start: %.2f" % (mins_since_start))
                 myfile.write("\n\n")
-                # myfile.write(str(current_best))
+                myfile.write(str(current_best))
             if verbosity > 0:
                 print("t = %s, T = %f" % (t, T))
                 print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
@@ -193,7 +194,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
                 print(clf.get_params())
                 print("Elapsed mins since start: %.2f" % (mins_since_start))
 
-    clf = solution_vect_to_clf(current_best, all_classifiers_array)
+    clf = solution_vect_to_clf(current_best)
     print("Finished with the following result:")
     print(f'Best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
     print("Selected parameters:")
@@ -204,6 +205,8 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
         myfile.write("Selected parameters:\n")
         myfile.write(str(clf.get_params()))
         myfile.write("\nTotal run time in mins: %.2f" % (time.time() - start_time))
+        myfile.write("\nVector for best solution:\n")
+        myfile.write(str(current_best))
 
 
     # at the end, return the best classifier found
@@ -221,7 +224,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
     c_1: a 'weight' for staying with the same classifier
     c_2: how much the temperature affects the chance of selecting a different classifier
 """
-def select_neighbor(solution, all_classifiers_array, T, rng, c_1, c_2, centering=True):
+def select_neighbor(solution, T, rng, c_1, c_2, centering=True):
     selected_classifier_index = int(len(all_classifiers_array) * solution[0])
     new_solution = solution.copy()
 
@@ -323,7 +326,8 @@ def eval_solution_adjusted(solution_clf, X_train, y_train, X_test, y_test):
 """
     Turns a solution vector into a classifier object and returns it
 """
-def solution_vect_to_clf(solution_vect, solution_space):
+def solution_vect_to_clf(solution_vect):
+    solution_space=all_classifiers_array
     selected_classifier_index = int(len(solution_space) * solution_vect[0])
 
     selected_classifier = solution_space[selected_classifier_index]
