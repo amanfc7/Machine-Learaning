@@ -189,6 +189,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
         myfile.write(f'Best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}\n')
         myfile.write("Selected parameters:\n")
         myfile.write(str(clf.get_params()))
+        myfile.write("\nTotal run time in mins: %.2f" % (time.time() - start_time))
 
 
     # at the end, return the best classifier found
