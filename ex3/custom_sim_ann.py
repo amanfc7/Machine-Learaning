@@ -18,8 +18,11 @@ from data_sets_util import load_ds
 # 5. GBC
 
 
+"""
 
-def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_index=0, verbose=True):
+    verbosity has three levels: 0 - don't print stuff, 1 - only print what is also logged, 2 - also print each new t once
+"""
+def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_index=0, verbosity=1):
     log_file_name = "custom_sim_ann_for_ds_" + str(ds_index) + ".log"
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
@@ -115,6 +118,8 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
     if ds_index != 0:
         with open(log_file_name, "a") as myfile: # should "a" be "w" instead to overwrite the log for each new run?
             myfile.write("Started simulated annealing optimization for data set with index  %d\n\n" % ds_index)
+    
+    last_log_time = start_time
 
     # now loop until th halting criterion is reached
     while (halting_criterion(start_time)): #one hour has not yet passed
@@ -142,11 +147,11 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
 
         T = cool_down(T, t)
         t = t + 1
-        if verbose: print(t)
+        if verbosity > 1: print(t)
 
-        #report regularly about what is currently going on
-        # could/should prbly also log this in a file or smt
-        if t % 10 == 0:
+        #report regularly about what is currently going on, also log it
+        if time.time() - last_log_time >= 60:
+            last_log_time = time.time()
             clf = solution_vect_to_clf(current_best, all_classifiers_array)
             mins_since_start = (time.time() - start_time) / 60.
             with open(log_file_name, "a") as myfile:
@@ -156,7 +161,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
                 myfile.write(str(clf.get_params()))
                 myfile.write("\nElapsed mins since start: %.2f" % (mins_since_start))
                 myfile.write("\n\n")
-            if verbose:
+            if verbosity > 0:
                 print("t = %s, T = %f" % (t, T))
                 print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
                 print("Selected parameters:")
@@ -207,24 +212,13 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
     new_clf_index = rng.choice(possible_clf_ind_list)
     # transform back into our 0-1 range with a little extra added to fall right in the middle of the range for the index
     new_solution[0] = new_clf_index / len(all_classifiers_array) + 1 / (2 * len(all_classifiers_array))
-    # new_solution[0] = new_clf_index / len(all_classifiers_array) # w/o centering, might cause unwanted parameter shifts if switching back and forth between clfs
+    ## new_solution[0] = new_clf_index / len(all_classifiers_array) # w/o centering, might cause unwanted parameter shifts if switching back and forth between clfs
 
     # update the remaining part of the solution vector where appropriate
     new_classifier = all_classifiers_array[new_clf_index]
-    # if selected_classifier_index != new_clf_index:
-    #     chose_neighbor = True
-    # else:
-    #     chose_neighbor = False
+
     for i, key in enumerate(new_classifier[1].keys()): # keys should always be in same order since solution space doesn't change
         possible_values = new_classifier[1][key]
-        # if int(0.1 * T) > 1:
-        #     choices_steps_to_add = [i+1 for i in range(int(0.1 * T))]
-        # else:
-        #     choices_steps_to_add = [1]
-        # if not chose_neighbor and i+1==len(new_classifier[1].keys()): #last chance to move and chose a neighbor
-        #     pass
-        # else: #already chose some different values, value does not need to change
-        #     choices_steps_to_add.append(0)
 
         if int(0.1 * T) > 1: #even at T = 10 we want at least one step, possibly more at higher temperatures
             choices_steps_to_add = [i for i in range(int(0.1 * T)+1)]
@@ -232,8 +226,7 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
             choices_steps_to_add = [0, 1]
         steps_to_add = rng.choice(choices_steps_to_add)
         steps_to_add = steps_to_add * rng.choice([-1, 1]) # subtract or add
-        # if steps_to_add != 0:
-        #     chose_neighbor = True
+
         value_to_add = steps_to_add / len(possible_values) # shift in to our range
 
         new_solution_value = solution[i+1] + value_to_add
@@ -243,7 +236,7 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
         # value to large, need largest valid value under 1
         if new_solution_value >= 1:
             new_solution_value = 1 - 1 / (2 * len(possible_values))
-            # new_solution_value = 1 - 1 / len(possible_values) # w/o centering
+            ## new_solution_value = 1 - 1 / len(possible_values) # w/o centering
         new_solution[i+1] = new_solution_value
 
     return new_solution
@@ -253,8 +246,8 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
     Return a lowered temperature
 """
 def cool_down(T, t):
-    min_T  = 10 #
-    reset_T = 100 #
+    min_T  = 10 # minimum temperature
+    reset_T = 100 # temperature to reset to once T gets too low
     reduction_factor = 0.9995
     new_T = T * reduction_factor
     if new_T < min_T:
