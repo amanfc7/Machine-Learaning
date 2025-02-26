@@ -21,6 +21,14 @@ from data_sets_util import load_ds
 """
 
     verbosity has three levels: 0 - don't print stuff, 1 - only print what is also logged, 2 - also print each new t once
+
+    init_T: the initial temperature
+    min_T: minimum temperature
+    reset_T: temperature to reset to once T gets too low
+    reduction_factor: factor by which to lower the temperature
+    max_it_per_t: how many times a neighbor should be picked per t
+    c_1: a 'weight' for staying with the same classifier
+    c_2: how much the temperature affects the chance of selecting a different classifier
 """
 def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=1,
     init_T=150, min_T=10, reset_T=100, reduction_factor=0.9995, max_it_per_t=10, c_1 = 3, c_2 = 100):
@@ -266,6 +274,8 @@ def cool_down(T, t, min_T, reset_T, reduction_factor):
 """
     Termination condition for one time step.
     Simply returns false once i is large enough
+
+    max_it_per_t: how many times a neighbor should be picked for each t
 """
 def termination_condition(i, T, max_it_per_t):
     max_iterations = max_it_per_t
