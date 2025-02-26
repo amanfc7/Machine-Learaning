@@ -31,7 +31,7 @@ from data_sets_util import load_ds
     c_2: how much the temperature affects the chance of selecting a different classifier
 """
 def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=2,
-    init_T=150, min_T=10, reset_T=100, reduction_factor=0.995, max_it_per_t=10, c_1 = 3, c_2 = 100):
+    init_T=150, min_T=10, reset_T=100, reduction_factor=0.995, max_it_per_t=5, c_1 = 3, c_2 = 100):
     log_file_name = "custom_sim_ann_for_ds_" + str(ds_index) + ".log"
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
@@ -63,13 +63,15 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
         SVC,
         { # hyperparameter dict
             "C": np.logspace(-3, 3, 10),  
-            "kernel": ("linear", "poly", "rbf", "sigmoid"), 
+            # "kernel": ("linear", "poly", "rbf", "sigmoid"), 
+            "kernel": ("poly", "rbf", "sigmoid"), 
             "degree": tuple(range(2, 6)),  
             "gamma": ("scale", "auto"), 
             "coef0": np.linspace(0, 1, 5),  
             "shrinking": (True, False), 
             # "probability": (True, False), # setting to True has some problems
             "class_weight": (None, "balanced"), 
+            "cache_size": [1000] #for faster run time
         }
     ]
 
@@ -149,7 +151,9 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
             new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng, c_1, c_2)
             # ... and evalute it
             clf = solution_vect_to_clf(new_solution, all_classifiers_array)
-            if verbosity > 1: print(f'Training an instance of the {str(type(clf)).split(".")[-1][:-2]}\n')
+            if verbosity > 1: 
+                print(f'Training an instance of the {str(type(clf)).split(".")[-1][:-2]}\n')
+                if type(clf) == SVC: print(clf.get_params())
             new_score = eval_solution_adjusted(clf, X_train, y_train, X_test, y_test)
             # if it's better than v_c, update v_c
             if curr_score < new_score:
