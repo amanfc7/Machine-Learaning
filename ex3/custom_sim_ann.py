@@ -30,8 +30,8 @@ from data_sets_util import load_ds
     c_1: a 'weight' for staying with the same classifier
     c_2: how much the temperature affects the chance of selecting a different classifier
 """
-def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=1,
-    init_T=150, min_T=10, reset_T=100, reduction_factor=0.9995, max_it_per_t=10, c_1 = 3, c_2 = 100):
+def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=2,
+    init_T=150, min_T=10, reset_T=100, reduction_factor=0.995, max_it_per_t=10, c_1 = 3, c_2 = 100):
     log_file_name = "custom_sim_ann_for_ds_" + str(ds_index) + ".log"
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
@@ -126,7 +126,9 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
 
     if ds_index != 0:
         with open(log_file_name, "a") as myfile: # should "a" be "w" instead to overwrite the log for each new run?
-            myfile.write("Started simulated annealing optimization for data set with index  %d\n\n" % ds_index)
+            myfile.write("Started simulated annealing optimization for data set with index  %d\n" % ds_index)
+            myfile.write("Parameters: init_T=%d, min_T=%d, reset_T=%d, reduction_factor=%f, max_it_per_t=%d, c_1 = %d, c_2 = %d\n\n" % (init_T, min_T, reset_T, reduction_factor, max_it_per_t, c_1, c_2))
+
     
     last_log_time = start_time
 
