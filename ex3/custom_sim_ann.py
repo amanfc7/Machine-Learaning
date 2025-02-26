@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.neural_network import MLPClassifier
-# from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
@@ -68,7 +68,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
             "gamma": ("scale", "auto"), 
             "coef0": np.linspace(0, 1, 5),  
             "shrinking": (True, False), 
-            "probability": (True, False), 
+            # "probability": (True, False), # setting to True has some problems
             "class_weight": (None, "balanced"), 
         }
     ]
@@ -104,6 +104,13 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
             "tol": [1e-4, 1e-3, 1e-2], 
         }
     ]
+
+    # classifier_6 = [
+    #     RandomForestClassifier,
+    #     {
+
+    #     }
+    # ]
 
     all_classifiers_array = [classifier_1, classifier_2, classifier_3, classifier_4, classifier_5]
     max_hp_number = max([len(classifier[1].keys()) for classifier in all_classifiers_array])
@@ -141,7 +148,9 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
             # select a new solution v_n in the neighborhood of v_c ...
             new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng, c_1, c_2)
             # ... and evalute it
-            new_score = eval_solution_adjusted(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
+            clf = solution_vect_to_clf(new_solution, all_classifiers_array)
+            if verbosity > 1: print(f'Training an instance of the {str(type(clf)).split(".")[-1][:-2]}\n')
+            new_score = eval_solution_adjusted(clf, X_train, y_train, X_test, y_test)
             # if it's better than v_c, update v_c
             if curr_score < new_score:
                 current_solution = new_solution
