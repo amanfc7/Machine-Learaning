@@ -186,7 +186,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
                 myfile.write(str(clf.get_params()))
                 myfile.write("\nElapsed mins since start: %.2f" % (mins_since_start))
                 myfile.write("\n\n")
-                myfile.write(str(current_best))
+                # myfile.write(str(current_best))
             if verbosity > 0:
                 print("t = %s, T = %f" % (t, T))
                 print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')
