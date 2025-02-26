@@ -10,7 +10,7 @@ import sys, time
 
 from data_sets_util import load_ds
 
-# TODO: 5+ ML algs
+# 5+ ML algs
 # 1. MLP
 # 2. KNC 
 # 3. SVC
@@ -22,7 +22,8 @@ from data_sets_util import load_ds
 
     verbosity has three levels: 0 - don't print stuff, 1 - only print what is also logged, 2 - also print each new t once
 """
-def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_index=0, verbosity=1):
+def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=1,
+    init_T=150, min_T=10, reset_T=100, reduction_factor=0.9995, max_it_per_t=10, c_1 = 3, c_2 = 100):
     log_file_name = "custom_sim_ann_for_ds_" + str(ds_index) + ".log"
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
@@ -125,10 +126,10 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
     while (halting_criterion(start_time)): #one hour has not yet passed
         i = 0
         # loop until the termination condition for the current time step has been reached
-        while (termination_condition(i, T)):
+        while (termination_condition(i, T, max_it_per_t)):
             i = i + 1
             # select a new solution v_n in the neighborhood of v_c ...
-            new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng)
+            new_solution = select_neighbor(current_solution, all_classifiers_array, T, rng, c_1, c_2)
             # ... and evalute it
             new_score = eval_solution_adjusted(solution_vect_to_clf(new_solution, all_classifiers_array), X_train, y_train, X_test, y_test)
             # if it's better than v_c, update v_c
@@ -145,7 +146,7 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
                     curr_score = new_score
 
 
-        T = cool_down(T, t)
+        T = cool_down(T, t, min_T, reset_T, reduction_factor)
         t = t + 1
         if verbosity > 1: print(t)
 
@@ -191,14 +192,15 @@ def optimize(X_train, y_train, X_test, y_test, init_T=150, rng_seed=None, ds_ind
 
 """
     Returns a solution in the neighborhood of the current solution
+
+    c_1: a 'weight' for staying with the same classifier
+    c_2: how much the temperature affects the chance of selecting a different classifier
 """
-def select_neighbor(solution, all_classifiers_array, T, rng):
+def select_neighbor(solution, all_classifiers_array, T, rng, c_1, c_2, centering=True):
     selected_classifier_index = int(len(all_classifiers_array) * solution[0])
     new_solution = solution.copy()
 
     # select a (possibly new) classifier, other classifiers should prbly be 'further away'
-    c_1 = 3 # a 'weight' for staying with the same classifier
-    c_2 = 100 # how much the temperature affects the chance of selecting a different classifier
     possible_clf_ind_list = [selected_classifier_index] * (c_1 + int(c_2/T))
     if selected_classifier_index == 0: #we are at left border, add right neighbor twice
         possible_clf_ind_list.append(1)
@@ -211,8 +213,10 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
 
     new_clf_index = rng.choice(possible_clf_ind_list)
     # transform back into our 0-1 range with a little extra added to fall right in the middle of the range for the index
-    new_solution[0] = new_clf_index / len(all_classifiers_array) + 1 / (2 * len(all_classifiers_array))
-    ## new_solution[0] = new_clf_index / len(all_classifiers_array) # w/o centering, might cause unwanted parameter shifts if switching back and forth between clfs
+    if centering:
+        new_solution[0] = new_clf_index / len(all_classifiers_array) + 1 / (2 * len(all_classifiers_array))
+    else:
+        new_solution[0] = new_clf_index / len(all_classifiers_array) # w/o centering, might cause unwanted parameter shifts if switching back and forth between clfs
 
     # update the remaining part of the solution vector where appropriate
     new_classifier = all_classifiers_array[new_clf_index]
@@ -235,8 +239,10 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
             new_solution_value = 0
         # value to large, need largest valid value under 1
         if new_solution_value >= 1:
-            new_solution_value = 1 - 1 / (2 * len(possible_values))
-            ## new_solution_value = 1 - 1 / len(possible_values) # w/o centering
+            if centering:
+                new_solution_value = 1 - 1 / (2 * len(possible_values))
+            else:
+                new_solution_value = 1 - 1 / len(possible_values) # w/o centering
         new_solution[i+1] = new_solution_value
 
     return new_solution
@@ -244,11 +250,14 @@ def select_neighbor(solution, all_classifiers_array, T, rng):
 
 """
     Return a lowered temperature
+
+    T: current temperature
+    t: current time stamp
+    min_T: minimum temperature
+    reset_T: temperature to reset to once T gets too low
+    reduction_factor: factor by which to lower the temperature
 """
-def cool_down(T, t):
-    min_T  = 10 # minimum temperature
-    reset_T = 100 # temperature to reset to once T gets too low
-    reduction_factor = 0.9995
+def cool_down(T, t, min_T, reset_T, reduction_factor):
     new_T = T * reduction_factor
     if new_T < min_T:
         new_T = reset_T
@@ -258,8 +267,8 @@ def cool_down(T, t):
     Termination condition for one time step.
     Simply returns false once i is large enough
 """
-def termination_condition(i, T):
-    max_iterations = 10
+def termination_condition(i, T, max_it_per_t):
+    max_iterations = max_it_per_t
     return i < max_iterations
 
 """
