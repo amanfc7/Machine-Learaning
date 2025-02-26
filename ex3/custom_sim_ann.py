@@ -30,8 +30,8 @@ from data_sets_util import load_ds
     c_1: a 'weight' for staying with the same classifier
     c_2: how much the temperature affects the chance of selecting a different classifier
 """
-def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=2,
-    init_T=150, min_T=10, reset_T=100, reduction_factor=0.995, max_it_per_t=5, c_1 = 3, c_2 = 100):
+def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbosity=1,
+    init_T=150, min_T=10, reset_T=100, reduction_factor=0.9995, max_it_per_t=10, c_1 = 3, c_2 = 100):
     log_file_name = "custom_sim_ann_for_ds_" + str(ds_index) + ".log"
     rng = np.random.default_rng(rng_seed)
     start_time = time.time()
@@ -185,6 +185,7 @@ def optimize(X_train, y_train, X_test, y_test, rng_seed=None, ds_index=0, verbos
                 myfile.write(str(clf.get_params()))
                 myfile.write("\nElapsed mins since start: %.2f" % (mins_since_start))
                 myfile.write("\n\n")
+                # myfile.write(str(current_best))
             if verbosity > 0:
                 print("t = %s, T = %f" % (t, T))
                 print(f'Current best score: {curr_best_score/100:0.5f} for the {str(type(clf)).split(".")[-1][:-2]}')

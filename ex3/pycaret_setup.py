@@ -9,7 +9,6 @@ import sys
 from data_sets_util import load_ds
 
 
-# TODO: adjust so it can better/more easily be used for comparison
 def optimize(X_train, y_train, X_test, y_test, ds_index=0):
 
     # pycaret requires X and y to be in one table, with the target column specified.
@@ -43,7 +42,7 @@ def optimize(X_train, y_train, X_test, y_test, ds_index=0):
     # predictions = s.predict_model(best, data = new_data)
 
     # save model
-    s.save_model(best, 'best_pipeline_for_ds'+ds_index)
+    s.save_model(best, 'best_pipeline_for_ds_'+str(ds_index))
 
     return best
 
