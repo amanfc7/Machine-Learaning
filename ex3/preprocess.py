@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
+from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 
 # to load and preview data:
@@ -96,7 +96,7 @@ def encode_categorical(df, ordinal_columns=None):
 
 # Main preprocessing function (for preprocessing of the datasets):
 
-def preprocess_data(df, dataset_name, ordinal_columns=None):
+def preprocess_data(df, dataset_name, ordinal_columns=None, scale_columns=None):
     print(f"\nPreprocessing Dataset: {dataset_name}")
 
     # to define target column and ID column based on dataset:
@@ -141,7 +141,25 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
     # to Encode categorical columns:
 
     features = encode_categorical(features, ordinal_columns=ordinal_columns)
+
+    # Apply StandardScaler:
     
+    if scale_columns:
+   
+        if dataset_name == "Wine":
+        
+            columns_to_scale = features.columns[1:]  
+        elif dataset_name == "Sick":
+        
+            columns_to_scale = ['TSH', 'T3', 'TT4', 'T4U', 'FTI']
+        else:
+            columns_to_scale = []
+    
+        if len(columns_to_scale) > 0: 
+            scaler = StandardScaler()
+            features[columns_to_scale] = scaler.fit_transform(features[columns_to_scale])
+
+
 
     # to attach the ID target columns again to datasets after preprocessing:
 
@@ -149,7 +167,7 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
     if id_column and id_column in df.columns:
         df_processed[id_column] = df[id_column]
     df_processed[target_column] = target 
-   
+
     if dataset_name == "Wine":
         cols = [target_column] + [col for col in df_processed.columns if col != target_column]
         df_processed = df_processed[cols]
@@ -161,7 +179,6 @@ def preprocess_data(df, dataset_name, ordinal_columns=None):
     # to finally Return the processed DataFrame:
 
     return df_processed
-
 
 
 # to Define file paths for datasets:
@@ -180,15 +197,14 @@ sick_data = load_and_preview_data(datasets["Sick"], is_arff=True, file_type="ful
 
 # for Preprocessing of datasets:
 
-wine_after = preprocess_data(wine_data.copy(), "Wine")
+wine_after = preprocess_data(wine_data.copy(), "Wine", scale_columns=True)
 congressional_voting_after = preprocess_data(congressional_voting.copy(), "CongressionalVotingID")
-sick_data_after = preprocess_data(sick_data.copy(), "Sick")
+sick_data_after = preprocess_data(sick_data.copy(), "Sick", scale_columns=True)
 
-# to finally Save preprocessed datasets as csv files and the plots: 
+# to finally Save preprocessed datasets as csv files and the plots:
 
 wine_after.to_csv("wine_preprocessed.csv", index=False)
 congressional_voting_after.to_csv("congressional_voting_preprocessed.csv", index=False)
 sick_data_after.to_csv("sick_data_preprocessed.csv", index=False)
 
 save_dir = "./"
-
