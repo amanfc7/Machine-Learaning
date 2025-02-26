@@ -25,6 +25,7 @@ def compare_methods_for_ds(data_set_index):
     # custom
     found_clf = custom_sim_ann.optimize(X_train, y_train, X_test, y_test,ds_index=data_set_index)
     # or just import from log file if it already exists and has finished - do it manually for now
+    # could be automated by trying to read last line(s) and checking if they can be converted to a vector then using 
 
     #TODO:# comparison plots
     
